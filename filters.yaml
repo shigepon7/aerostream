@@ -1,0 +1,32 @@
+filters:
+- name: bluesky team
+  subscribes:
+    dids:
+    - did:plc:vjug55kidv6sye7ykr5faxxn
+    - did:plc:tpg43qhh4lw4ksiffs4nbda3
+    - did:plc:vpkhqolt662uhesyj6nxm7ys
+    - did:plc:fgsn4gf2dlgnybo4nbej5b2s
+    - did:plc:ragtjsm2j2vknwkz3zp4oxrd
+    - did:plc:oky5czdrnfjpqslsw2a5iclo
+    - did:plc:6fktaamhhxdqb2ypum33kbkj
+    - did:plc:44ybard66vv44zksje25o7dz
+    - did:plc:l3rouwludahu3ui3bt66mfvj
+    - did:plc:yk4dd2qkboz2yv6tpubpc6co
+    - did:plc:q3wucypudqw4oju3ezdcv7uy
+    handles:
+    - jay.bsky.team
+    - pfrazee.com
+    - why.bsky.team
+    - iamrosewang.bsky.social
+    - dholms.xyz
+    - divy.zone
+    - jakegold.us
+    - bnewbold.net
+    - ansh.bsky.team
+    - emily.bsky.team
+    - jack.bsky.social
+  keywords:
+    includes:
+    - bluesky
+    excludes:
+    - twitter
