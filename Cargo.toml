@@ -1,6 +1,9 @@
 [package]
+description = "Aerostream is Bluesky client using EventStream."
 edition = "2021"
+license = "Apache-2.0"
 name = "aerostream"
+repository = "https://github.com/shigepon7/aerostream"
 version = "0.2.0"
 
 [[bin]]
