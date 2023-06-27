@@ -4,18 +4,22 @@
 //! Aerostream is Bluesky client using EventStream.
 //!
 //! ```
-//! use std::io::{stdout, Write};
+//! use std::{
+//!   io::{stdout, Write},
+//!   time::Duration,
+//! };
 //!
 //! use aerostream::Client;
 //! use anyhow::Result;
 //! use chrono::Local;
 //!
 //! fn main() -> Result<()> {
+//!   env_logger::init();
 //!   let mut client = Client::default();
+//!   client.set_timeout(5);
 //!   client.connect_ws()?;
 //!   loop {
-//!     let events = client.next_event_filtered_all()?;
-//!     for (filter, event) in events.iter() {
+//!     for (filter, event) in client.next_event_filtered_all()?.iter() {
 //!       let Some(commit) = event.as_commit() else {
 //!         continue;
 //!       };
@@ -36,12 +40,13 @@
 //!         .collect::<Vec<_>>();
 //!       print!("{} : {} : {} : {}", filter, time, handle, text);
 //!       if !commit.blobs.is_empty() {
-//!         println!("{}", blobs.join(","));
+//!         println!(" : {}", blobs.join(","));
 //!       } else {
 //!         println!("");
 //!       }
+//!       stdout().flush().ok();
 //!     }
-//!     stdout().flush().ok();
+//!     std::thread::sleep(Duration::from_millis(10));
 //!   }
 //! }
 //! ```

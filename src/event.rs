@@ -80,7 +80,7 @@ impl From<CommitInner> for Commit {
       blocks,
       ops: value.ops,
       blobs,
-      time: value.time.parse::<DateTime<Utc>>().unwrap_or_default(),
+      time: value.time.parse().unwrap_or_default(),
     }
   }
 }
@@ -207,31 +207,86 @@ impl Blocks {
   }
 }
 
-/// Event "#handle"
 #[derive(Debug, Clone, DagCbor)]
+struct HandleInner {
+  seq: i64,
+  did: String,
+  handle: String,
+  time: String,
+}
+
+/// Event "#handle"
+#[derive(Debug, Clone)]
 pub struct Handle {
   pub seq: i64,
   pub did: String,
   pub handle: String,
-  pub time: String,
+  pub time: DateTime<Utc>,
+}
+
+impl From<HandleInner> for Handle {
+  fn from(value: HandleInner) -> Self {
+    Self {
+      seq: value.seq,
+      did: value.did,
+      handle: value.handle,
+      time: value.time.parse().unwrap_or_default(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, DagCbor)]
+#[allow(non_snake_case)]
+struct MigrateInner {
+  seq: i64,
+  did: String,
+  migrateTo: Option<String>,
+  time: String,
 }
 
 /// Event "#migrate"
-#[derive(Debug, Clone, DagCbor)]
-#[allow(non_snake_case)]
+#[derive(Debug, Clone)]
 pub struct Migrate {
   pub seq: i64,
   pub did: String,
-  pub migrateTo: Option<String>,
-  pub time: String,
+  pub migrate_to: Option<String>,
+  pub time: DateTime<Utc>,
+}
+
+impl From<MigrateInner> for Migrate {
+  fn from(value: MigrateInner) -> Self {
+    Self {
+      seq: value.seq,
+      did: value.did,
+      migrate_to: value.migrateTo,
+      time: value.time.parse().unwrap_or_default(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, DagCbor)]
+struct TombstoneInner {
+  seq: i64,
+  did: String,
+  time: String,
 }
 
 /// Event "#tombstone"
-#[derive(Debug, Clone, DagCbor)]
+#[derive(Debug, Clone)]
 pub struct Tombstone {
   pub seq: i64,
   pub did: String,
-  pub time: String,
+  pub time: DateTime<Utc>,
+}
+
+impl From<TombstoneInner> for Tombstone {
+  fn from(value: TombstoneInner) -> Self {
+    Self {
+      seq: value.seq,
+      did: value.did,
+      time: value.time.parse().unwrap_or_default(),
+    }
+  }
 }
 
 /// Event "#info"
@@ -251,6 +306,32 @@ pub enum Payload {
   Info(Info),
   #[default]
   Null,
+}
+
+impl Payload {
+  /// Get sequence number
+  pub fn get_seq(&self) -> Option<i64> {
+    match self {
+      Self::Commit(c) => Some(c.seq),
+      Self::Handle(h) => Some(h.seq),
+      Self::Migrate(m) => Some(m.seq),
+      Self::Tombstone(t) => Some(t.seq),
+      Self::Info(_) => None,
+      Self::Null => None,
+    }
+  }
+
+  /// Get event time
+  pub fn get_time(&self) -> Option<DateTime<Utc>> {
+    match self {
+      Self::Commit(c) => Some(c.time),
+      Self::Handle(h) => Some(h.time),
+      Self::Migrate(m) => Some(m.time),
+      Self::Tombstone(t) => Some(t.time),
+      Self::Info(_) => None,
+      Self::Null => None,
+    }
+  }
 }
 
 /// Event
@@ -275,8 +356,8 @@ fn parse_commit(payload: &[u8]) -> Payload {
 
 fn parse_handle(payload: &[u8]) -> Payload {
   match DagCborCodec
-    .decode::<Handle>(payload)
-    .map(|h| Payload::Handle(h))
+    .decode::<HandleInner>(payload)
+    .map(|h| Payload::Handle(Handle::from(h)))
   {
     Ok(p) => p,
     Err(e) => {
@@ -288,8 +369,8 @@ fn parse_handle(payload: &[u8]) -> Payload {
 
 fn parse_migrate(payload: &[u8]) -> Payload {
   match DagCborCodec
-    .decode::<Migrate>(payload)
-    .map(|m| Payload::Migrate(m))
+    .decode::<MigrateInner>(payload)
+    .map(|m| Payload::Migrate(Migrate::from(m)))
   {
     Ok(p) => p,
     Err(e) => {
@@ -301,8 +382,8 @@ fn parse_migrate(payload: &[u8]) -> Payload {
 
 fn parse_tombstone(payload: &[u8]) -> Payload {
   match DagCborCodec
-    .decode::<Tombstone>(payload)
-    .map(|t| Payload::Tombstone(t))
+    .decode::<TombstoneInner>(payload)
+    .map(|t| Payload::Tombstone(Tombstone::from(t)))
   {
     Ok(p) => p,
     Err(e) => {
@@ -395,5 +476,15 @@ impl Event {
     } else {
       None
     }
+  }
+
+  /// Get sequence number
+  pub fn get_seq(&self) -> Option<i64> {
+    self.payload.get_seq()
+  }
+
+  /// Get Event Time
+  pub fn get_time(&self) -> Option<DateTime<Utc>> {
+    self.payload.get_time()
   }
 }

@@ -38,6 +38,7 @@
 //! ```
 use std::collections::HashSet;
 
+use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
 use crate::{Client, Commit, Event, Handle, Payload};
@@ -58,6 +59,62 @@ impl Subscribes {
       }
     }
     false
+  }
+
+  /// Add a repository to subscribe
+  pub fn subscribe_repo<T: ToString>(&mut self, did: T) -> Result<()> {
+    match self.dids.as_mut() {
+      Some(dids) => {
+        dids.push(did.to_string());
+      }
+      None => {
+        self.dids = Some(vec![did.to_string()]);
+      }
+    }
+    Ok(())
+  }
+
+  /// Remove a repository to subscribe
+  pub fn unsubscribe_repo<T: ToString>(&mut self, did: T) -> Result<()> {
+    let did = did.to_string();
+    match self.dids.as_ref() {
+      Some(dids) => {
+        self.dids = Some(dids.into_iter().filter(|d| **d != did).cloned().collect());
+      }
+      None => bail!("no such did"),
+    }
+    Ok(())
+  }
+
+  /// Add a handle to subscribe
+  pub fn subscribe_handle<T: ToString>(&mut self, handle: T) -> Result<()> {
+    match self.handles.as_mut() {
+      Some(handles) => {
+        handles.push(handle.to_string());
+      }
+      None => {
+        self.handles = Some(vec![handle.to_string()]);
+      }
+    }
+    Ok(())
+  }
+
+  /// Remove a handle to subscribe
+  pub fn unsubscribe_handle<T: ToString>(&mut self, handle: T) -> Result<()> {
+    let handle = handle.to_string();
+    match self.handles.as_ref() {
+      Some(handles) => {
+        self.handles = Some(
+          handles
+            .into_iter()
+            .filter(|h| **h != handle)
+            .cloned()
+            .collect(),
+        );
+      }
+      None => bail!("no such handle"),
+    }
+    Ok(())
   }
 }
 
@@ -166,6 +223,50 @@ impl Filter {
       _ => true,
     }
   }
+
+  /// Add a repository to subscribe to the Filter
+  pub fn subscribe_repo<T: ToString>(&mut self, did: T) -> Result<()> {
+    if self.subscribes.is_none() {
+      self.subscribes = Some(Subscribes::default());
+    }
+    match self.subscribes.as_mut() {
+      Some(s) => s.subscribe_repo(did),
+      None => bail!("cannot modify filter"),
+    }
+  }
+
+  /// Remove a repository to subscribe to the Filter
+  pub fn unsubscribe_repo<T: ToString>(&mut self, did: T) -> Result<()> {
+    if self.subscribes.is_none() {
+      bail!("no such did");
+    }
+    match self.subscribes.as_mut() {
+      Some(s) => s.unsubscribe_repo(did),
+      None => bail!("cannot modify filter"),
+    }
+  }
+
+  /// Add a handle to subscribe to the Filter
+  pub fn subscribe_handle<T: ToString>(&mut self, handle: T) -> Result<()> {
+    if self.subscribes.is_none() {
+      self.subscribes = Some(Subscribes::default());
+    }
+    match self.subscribes.as_mut() {
+      Some(s) => s.subscribe_handle(handle),
+      None => bail!("cannot modify filter"),
+    }
+  }
+
+  /// Remove a handle to subscribe to the Filter
+  pub fn unsubscribe_handle<T: ToString>(&mut self, handle: T) -> Result<()> {
+    if self.subscribes.is_none() {
+      bail!("no such handle");
+    }
+    match self.subscribes.as_mut() {
+      Some(s) => s.unsubscribe_handle(handle),
+      None => bail!("cannot modify filter"),
+    }
+  }
 }
 
 /// Set of filters
@@ -185,5 +286,45 @@ impl Filters {
   /// Returns all included filters
   pub fn get_filters(&self) -> Vec<Filter> {
     self.filters.clone()
+  }
+
+  /// Add a repository to subscribe to the Filter given by name
+  pub fn subscribe_repo<T1: ToString, T2: ToString>(&mut self, name: T1, did: T2) -> Result<()> {
+    let Some(filter) = self.filters.iter_mut().find(|f| f.name == name.to_string()) else {
+      bail!("no such named filter");
+    };
+    filter.subscribe_repo(did)
+  }
+
+  /// Remove a repository to subscribe to the Filter given by name
+  pub fn unsubscribe_repo<T1: ToString, T2: ToString>(&mut self, name: T1, did: T2) -> Result<()> {
+    let Some(filter) = self.filters.iter_mut().find(|f| f.name == name.to_string()) else {
+      bail!("no such named filter");
+    };
+    filter.unsubscribe_repo(did)
+  }
+
+  /// Add a handle to subscribe to the Filter given by name
+  pub fn subscribe_handle<T1: ToString, T2: ToString>(
+    &mut self,
+    name: T1,
+    handle: T2,
+  ) -> Result<()> {
+    let Some(filter) = self.filters.iter_mut().find(|f| f.name == name.to_string()) else {
+      bail!("no such named filter");
+    };
+    filter.subscribe_handle(handle)
+  }
+
+  /// Remove a handle to subscribe to the Filter given by name
+  pub fn unsubscribe_handle<T1: ToString, T2: ToString>(
+    &mut self,
+    name: T1,
+    did: T2,
+  ) -> Result<()> {
+    let Some(filter) = self.filters.iter_mut().find(|f| f.name == name.to_string()) else {
+      bail!("no such named filter");
+    };
+    filter.unsubscribe_handle(did)
   }
 }
