@@ -487,4 +487,9 @@ impl Event {
   pub fn get_time(&self) -> Option<DateTime<Utc>> {
     self.payload.get_time()
   }
+
+  /// Returns whether or not Event is empty
+  pub fn is_empty(&self) -> bool {
+    matches!(self.payload, Payload::Null)
+  }
 }

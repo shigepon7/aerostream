@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
-use std::thread::{spawn, JoinHandle};
+use std::thread::{sleep, spawn, JoinHandle};
 use std::time::Duration;
 
 use anyhow::{bail, Result};
@@ -18,14 +18,29 @@ use crate::{Event, Filters};
 pub struct Client {
   agent: Agent,
   host: String,
-  repo_store: HashMap<String, Repo>,
-  handle_store: HashMap<String, String>,
+  repo_store: Arc<Mutex<HashMap<String, Repo>>>,
+  handle_store: Arc<Mutex<HashMap<String, String>>>,
   thread: Option<JoinHandle<()>>,
-  rx: HashMap<String, Receiver<Event>>,
-  tx: Option<Sender<String>>,
+  rx: Arc<Mutex<HashMap<String, Receiver<Event>>>>,
   last_received: Arc<Mutex<DateTime<Utc>>>,
   filters: Arc<Mutex<Filters>>,
   timeout: chrono::Duration,
+}
+
+impl Clone for Client {
+  fn clone(&self) -> Self {
+    Self {
+      agent: self.agent.clone(),
+      host: self.host.clone(),
+      repo_store: Arc::clone(&self.repo_store),
+      handle_store: Arc::clone(&self.handle_store),
+      thread: None,
+      rx: Arc::clone(&self.rx),
+      last_received: Arc::new(Mutex::new(DateTime::default())),
+      filters: Arc::clone(&self.filters),
+      timeout: self.timeout.clone(),
+    }
+  }
 }
 
 impl Default for Client {
@@ -42,11 +57,10 @@ impl Default for Client {
     let mut client = Self {
       agent: agent.build(),
       host: String::from("bsky.social"),
-      repo_store: HashMap::new(),
-      handle_store: HashMap::new(),
+      repo_store: Arc::new(Mutex::new(HashMap::new())),
+      handle_store: Arc::new(Mutex::new(HashMap::new())),
       thread: None,
-      rx: HashMap::new(),
-      tx: None,
+      rx: Arc::new(Mutex::new(HashMap::new())),
       last_received: Arc::new(Mutex::new(DateTime::default())),
       filters: Arc::new(Mutex::new(Filters::default())),
       timeout: chrono::Duration::seconds(60),
@@ -63,7 +77,6 @@ impl Default for Client {
 }
 
 fn receiver_thread(
-  rx: Receiver<String>,
   host: String,
   last_received: Arc<Mutex<DateTime<Utc>>>,
   mut tx_map: HashMap<String, Sender<Event>>,
@@ -72,12 +85,6 @@ fn receiver_thread(
   let mut last_seq = None;
   let mut is_terminating = false;
   loop {
-    if let Ok(msg) = rx.try_recv() {
-      if !msg.is_empty() {
-        log::warn!("old thread terminate");
-        break;
-      }
-    }
     let url = match last_seq {
       Some(seq) => format!(
         "wss://{}/xrpc/com.atproto.sync.subscribeRepos?cursor={}",
@@ -86,16 +93,15 @@ fn receiver_thread(
       None => format!("wss://{}/xrpc/com.atproto.sync.subscribeRepos", host),
     };
     log::info!("{}", url);
-    let (mut ws, _) = tungstenite::connect(&url).unwrap();
+    let (mut ws, _) = match tungstenite::connect(&url) {
+      Ok(res) => res,
+      Err(e) => {
+        log::warn!("WebSocket connect error : {}", e);
+        break;
+      }
+    };
     log::info!("websocket connected");
     loop {
-      if let Ok(msg) = rx.try_recv() {
-        if !msg.is_empty() {
-          log::warn!("old thread terminate");
-          is_terminating = true;
-          break;
-        }
-      }
       log::debug!("WAIT WEBSOCKET MESSAGE");
       match ws.read_message() {
         Ok(Message::Binary(b)) => {
@@ -110,13 +116,21 @@ fn receiver_thread(
             }
           }
           if let Some(tx) = tx_map.get_mut("") {
-            tx.send(event).unwrap();
+            if tx.send(event).is_err() {
+              log::warn!("Already new receiver thread is created");
+              is_terminating = true;
+              break;
+            }
           } else {
             if let Ok(filters) = filters.lock() {
               for filter in filters.get_filters().iter() {
                 if filter.is_match(&event) {
                   if let Some(tx) = tx_map.get_mut(&filter.name) {
-                    tx.send(event.clone()).unwrap();
+                    if tx.send(event.clone()).is_err() {
+                      log::warn!("Already new receiver thread is created");
+                      is_terminating = true;
+                      break;
+                    }
                   }
                 }
               }
@@ -181,16 +195,14 @@ impl Client {
     let filters = Arc::clone(&self.filters);
     self.last_received = Arc::new(Mutex::new(DateTime::default()));
     let last_received = Arc::clone(&self.last_received);
-    let (tx, rx) = channel();
-    self.tx = Some(tx);
-    self.rx = rx_map;
+    self.rx = Arc::new(Mutex::new(rx_map));
     self.thread = Some(spawn(move || {
-      receiver_thread(rx, host, last_received, tx_map, filters);
+      receiver_thread(host, last_received, tx_map, filters);
     }));
     Ok(())
   }
 
-  fn check_and_restart_websocket(&mut self) -> Result<()> {
+  fn check_and_restart_websocket(&mut self) -> Result<bool> {
     if match self.last_received.lock() {
       Ok(read) => {
         let last_received = *read;
@@ -203,38 +215,52 @@ impl Client {
         self.timeout.num_seconds()
       );
       std::thread::sleep(Duration::from_secs(1));
-      if let Some(tx) = &self.tx {
-        tx.send(String::from("terminate")).unwrap();
-      }
       self.connect_ws()?;
+      return Ok(true);
     }
-    Ok(())
+    Ok(false)
   }
 
   /// Receive event from WebSocket, apply filter, and return event with name of matching filter
   pub fn next_event_filtered_all(&mut self) -> Result<Vec<(String, Event)>> {
     let mut ret = Vec::new();
-    for (name, rx) in self.rx.iter() {
-      while let Ok(event) = rx.try_recv() {
-        ret.push((name.clone(), event));
+    match self.rx.lock() {
+      Ok(rx_map) => {
+        for (name, rx) in rx_map.iter() {
+          while let Ok(event) = rx.try_recv() {
+            if !event.is_empty() {
+              ret.push((name.clone(), event));
+            }
+          }
+        }
       }
+      Err(e) => bail!("{}", e),
     }
-    self.check_and_restart_websocket()?;
+    if !self.check_and_restart_websocket()? && ret.is_empty() {
+      sleep(Duration::from_millis(10));
+    }
     Ok(ret)
   }
 
   /// Returns events from WebSocket that match the specified filter
   pub fn next_event_filtered<T: ToString>(&mut self, name: T) -> Result<Event> {
-    if let Some(rx) = self.rx.get(&name.to_string()) {
-      let event = match rx.try_recv() {
-        Ok(event) => event,
-        _ => Event::default(),
-      };
-      self.check_and_restart_websocket()?;
-      Ok(event)
-    } else {
-      bail!("no such name filter");
+    let mut event = Event::default();
+    match self.rx.lock() {
+      Ok(rx_map) => {
+        if let Some(rx) = rx_map.get(&name.to_string()) {
+          if let Ok(e) = rx.try_recv() {
+            event = e;
+          };
+        } else {
+          bail!("no such name filter");
+        }
+      }
+      Err(e) => bail!("{}", e),
     }
+    if !self.check_and_restart_websocket()? && event.is_empty() {
+      sleep(Duration::from_millis(10));
+    }
+    Ok(event)
   }
 
   /// Receive next event from WebSocket
@@ -278,14 +304,19 @@ impl Client {
   /// Return repository information via cache
   pub fn get_repo<T: ToString>(&mut self, did: T) -> Result<Repo> {
     let did = did.to_string();
-    match self.repo_store.get(&did) {
-      Some(r) => Ok(r.clone()),
-      None => {
-        let repo = self.describe_repo(&did)?;
-        self.repo_store.insert(did, repo.clone());
-        Ok(repo)
+    if let Ok(mut repo_store) = self.repo_store.lock() {
+      match repo_store.get(&did) {
+        Some(r) => {
+          return Ok(r.clone());
+        }
+        None => {
+          let repo = self.describe_repo(&did)?;
+          repo_store.insert(did, repo.clone());
+          return Ok(repo);
+        }
       }
     }
+    self.get_repo(did)
   }
 
   /// Call com.atproto.identity.resolveHandle to return DID information
@@ -305,13 +336,26 @@ impl Client {
   /// Return DID information via cache
   pub fn get_handle<T: ToString>(&mut self, handle: T) -> Result<String> {
     let handle = handle.to_string();
-    match self.handle_store.get(&handle) {
-      Some(h) => Ok(h.clone()),
-      None => {
-        let did = self.resolve_handle(&handle)?;
-        self.handle_store.insert(handle, did.clone());
-        Ok(did)
+    if let Ok(mut handle_store) = self.handle_store.lock() {
+      match handle_store.get(&handle) {
+        Some(h) => {
+          return Ok(h.clone());
+        }
+        None => {
+          let did = self.resolve_handle(&handle)?;
+          handle_store.insert(handle, did.clone());
+          return Ok(did);
+        }
       }
+    }
+    self.resolve_handle(handle)
+  }
+
+  /// Get Filter names
+  pub fn get_filter_names(&self) -> Vec<String> {
+    match self.filters.lock() {
+      Ok(filters) => filters.get_filters().into_iter().map(|f| f.name).collect(),
+      Err(_) => vec![String::from("")],
     }
   }
 
