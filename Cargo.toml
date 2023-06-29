@@ -4,7 +4,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "aerostream"
 repository = "https://github.com/shigepon7/aerostream"
-version = "0.3.0"
+version = "0.4.0"
 
 [[bin]]
 name = "aerostream"
@@ -12,6 +12,7 @@ name = "aerostream"
 [dependencies]
 anyhow = "1.0.71"
 chrono = "0.4.26"
+crossterm = "0.26.1"
 env_logger = "0.10.0"
 leb128 = "0.2.5"
 libipld = {version = "0.16.0", features = ["serde-codec"]}
@@ -19,5 +20,7 @@ log = "0.4.19"
 serde = {version = "1.0.164", features = ["derive"]}
 serde_json = "1.0.99"
 serde_yaml = "0.9.22"
+textwrap = "0.16.0"
+tui = "0.19.0"
 tungstenite = {version = "0.19.0", features = ["rustls-tls-webpki-roots"]}
 ureq = {version = "2.7.1", features = ["json"]}

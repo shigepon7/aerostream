@@ -32,6 +32,44 @@ pub struct RepoOp {
   pub cid: Option<Link<Cid>>,
 }
 
+#[derive(Debug, Clone)]
+pub struct FeedPost {
+  pub text: String,
+  pub created_at: DateTime<Utc>,
+  pub langs: Option<Vec<String>>,
+}
+
+impl FeedPost {
+  pub fn from(ipld: Ipld) -> Option<Self> {
+    let text = match ipld.get("text").ok()? {
+      Ipld::String(s) => s.clone(),
+      _ => return None,
+    };
+    let created_at = match ipld.get("createdAt").ok()? {
+      Ipld::String(s) => s.clone(),
+      _ => return None,
+    }
+    .parse()
+    .ok()?;
+    let langs = ipld.get("langs").ok().and_then(|ipld| match ipld {
+      Ipld::List(l) => Some(
+        l.iter()
+          .filter_map(|i| match i {
+            Ipld::String(s) => Some(s.clone()),
+            _ => None,
+          })
+          .collect(),
+      ),
+      _ => None,
+    });
+    Some(Self {
+      text,
+      created_at,
+      langs,
+    })
+  }
+}
+
 #[derive(Debug, Clone, DagCbor)]
 #[allow(non_snake_case)]
 struct CommitInner {
@@ -86,21 +124,21 @@ impl From<CommitInner> for Commit {
 }
 
 impl Commit {
-  /// Returns the text of all posts included in an operation to the repository
-  pub fn get_post_text(&self) -> Vec<String> {
+  /// Returns the posts included in an operation to the repository
+  pub fn get_post(&self) -> Vec<FeedPost> {
     self
       .ops
       .iter()
       .filter(|op| op.action == "create" && op.path.starts_with("app.bsky.feed.post"))
       .filter_map(|op| op.cid)
-      .filter_map(|cid| self.blocks.get(&cid))
-      .filter_map(|ipld| {
-        ipld.get("text").ok().and_then(|ipld| match ipld {
-          Ipld::String(s) => Some(s.clone()),
-          _ => None,
-        })
-      })
+      .filter_map(|cid| self.blocks.get(&cid).and_then(|ipld| FeedPost::from(ipld)))
       .collect()
+  }
+
+  /// Returns the text of all posts included in an operation to the repository
+  pub fn get_post_text(&self) -> Vec<String> {
+    log::info!("{:?}", self.get_post());
+    self.get_post().into_iter().map(|fp| fp.text).collect()
   }
 }
 

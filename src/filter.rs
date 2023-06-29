@@ -41,7 +41,7 @@ use std::collections::HashSet;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{Client, Commit, Event, Handle, Payload};
+use crate::{event::FeedPost, Client, Commit, Event, Handle, Payload};
 
 /// Filter by repository (DID or handle) to which you are subscribed
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
@@ -90,7 +90,10 @@ impl Subscribes {
   pub fn subscribe_handle<T: ToString>(&mut self, handle: T) -> Result<()> {
     match self.handles.as_mut() {
       Some(handles) => {
-        handles.push(handle.to_string());
+        let handle = handle.to_string();
+        if handles.iter().all(|h| *h != handle) {
+          handles.push(handle.to_string());
+        }
       }
       None => {
         self.handles = Some(vec![handle.to_string()]);
@@ -126,35 +129,87 @@ pub struct Keywords {
 }
 
 impl Keywords {
-  /// Returns whether the specified string is included in the Event received from all repositories
-  pub fn includes(&self, commit: &Commit) -> bool {
+  /// Returns whether the specified string is included in the Event
+  pub fn includes(&self, posts: &[FeedPost]) -> bool {
     let Some(includes) = &self.includes else {
       return false;
     };
-    commit
-      .get_post_text()
+    posts
       .iter()
-      .any(|p| includes.iter().any(|i| p.contains(i)))
+      .any(|p| includes.iter().any(|i| p.text.contains(i)))
   }
 
-  /// Returns whether the specified string is included in the Event received from the subscribed repository.
-  pub fn excludes(&self, commit: &Commit) -> bool {
+  /// Returns whether the specified string is included in the Event
+  pub fn excludes(&self, posts: &[FeedPost]) -> bool {
     let Some(excludes) = &self.excludes else {
       return false;
     };
-    commit
-      .get_post_text()
+    posts
       .iter()
-      .any(|p| excludes.iter().any(|i| p.contains(i)))
+      .any(|p| excludes.iter().any(|i| p.text.contains(i)))
+  }
+}
+
+/// Filter by Language
+#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+pub struct Langs {
+  pub includes: Option<Vec<String>>,
+  pub excludes: Option<Vec<String>>,
+}
+
+impl Langs {
+  /// Returns whether the specified language is included in the Event
+  pub fn includes(&self, posts: &[FeedPost]) -> bool {
+    let Some(includes) = &self.includes else {
+      return false;
+    };
+    posts.iter().any(|p| {
+      includes
+        .iter()
+        .any(|i| p.langs.as_ref().map(|l| l.contains(i)).unwrap_or(false))
+    })
+  }
+
+  /// Returns whether the specified string is excluded in the Event
+  pub fn excludes(&self, posts: &[FeedPost]) -> bool {
+    let Some(excludes) = &self.excludes else {
+      return false;
+    };
+    posts.iter().any(|p| {
+      excludes
+        .iter()
+        .any(|i| p.langs.as_ref().map(|l| l.contains(i)).unwrap_or(false))
+    })
   }
 }
 
 /// Filter
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Filter {
   pub name: String,
   pub subscribes: Option<Subscribes>,
   pub keywords: Option<Keywords>,
+  pub langs: Option<Langs>,
+}
+
+impl Default for Filter {
+  fn default() -> Self {
+    Self {
+      name: String::new(),
+      subscribes: Some(Subscribes {
+        dids: Some(Vec::new()),
+        handles: Some(Vec::new()),
+      }),
+      keywords: Some(Keywords {
+        includes: Some(Vec::new()),
+        excludes: Some(Vec::new()),
+      }),
+      langs: Some(Langs {
+        includes: Some(Vec::new()),
+        excludes: Some(Vec::new()),
+      }),
+    }
+  }
 }
 
 impl Filter {
@@ -198,27 +253,41 @@ impl Filter {
     }
   }
 
-  fn is_keywords_includes(&self, commit: &Commit) -> bool {
-    match &self.keywords {
-      Some(k) => k.includes(commit),
-      None => false,
-    }
-  }
-
-  fn is_keywords_excludes(&self, commit: &Commit) -> bool {
-    match &self.keywords {
-      Some(k) => k.excludes(commit),
-      None => false,
-    }
-  }
-
   /// Returns whether or not the filter is matched
   pub fn is_match(&self, event: &Event) -> bool {
+    if self.subscribes.is_none() && self.keywords.is_none() && self.langs.is_none() {
+      return true;
+    }
     match &event.payload {
-      Payload::Commit(c) => match self.is_follows_match(c) {
-        true => !self.is_keywords_excludes(c),
-        false => self.is_keywords_includes(c),
-      },
+      Payload::Commit(c) => {
+        let posts = c.get_post();
+        match self.is_follows_match(c) {
+          true => {
+            !self
+              .keywords
+              .as_ref()
+              .map(|k| k.excludes(&posts))
+              .unwrap_or(false)
+              && !self
+                .langs
+                .as_ref()
+                .map(|l| l.excludes(&posts))
+                .unwrap_or(false)
+          }
+          false => {
+            self
+              .keywords
+              .as_ref()
+              .map(|k| k.includes(&posts))
+              .unwrap_or(false)
+              || self
+                .langs
+                .as_ref()
+                .map(|l| l.includes(&posts))
+                .unwrap_or(false)
+          }
+        }
+      }
       Payload::Handle(h) => self.is_handle_match(h),
       _ => true,
     }
@@ -270,9 +339,28 @@ impl Filter {
 }
 
 /// Set of filters
-#[derive(Debug, Clone, Deserialize, Serialize, Default)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Filters {
   pub filters: Vec<Filter>,
+}
+
+impl Default for Filters {
+  fn default() -> Self {
+    Self {
+      filters: vec![
+        Filter {
+          name: String::from("All"),
+          subscribes: None,
+          keywords: None,
+          langs: None,
+        },
+        Filter {
+          name: String::from("Favorites"),
+          ..Default::default()
+        },
+      ],
+    }
+  }
 }
 
 impl Filters {

@@ -2,6 +2,55 @@
 
 Aerostream is Bluesky client using EventStream.
 
+It can be used as a library or as a command line tool.
+
+## To use as a command line tool.
+
+```shell
+cargo install aerostream
+aerostream
+```
+
+### Notes
+
+- Only CUI, No need to log in.
+- Instead, you can't post, repost and like.
+- Configuration file must be edited in a text editor, and there is no configuration screen in the application.
+
+### Edit filters.yaml
+
+```yaml
+filters:
+  - name: <Column Name>
+    subscribes:
+      dids:
+        - <DID to identify the repository to subscribe to>
+      handles:
+        - <Handle to identify the repository to subscribe to>
+    keywords:
+      includes:
+        - <Keywords to include in Column even if you are not subscribed>
+      excludes:
+        - <Keywords to exclude in Column even if you are subscribed>
+    langs:
+      includes:
+        - <Languages to include in Column even if you are not subscribed>
+      excludes:
+        - <Languages to exclude in Column even if you are subscribed>
+```
+
+### Operation
+
+- q or Ctrl+c : quit this application
+- F5 or Ctrl+r : redraw screen
+- s : subscribe to the repository of the focused post in "Favorites" filter
+- u : unsubscribe to the repository of the focused post in "Favorites" filter
+- LEFT or RIGHT : change the filter in focus
+- UP or DOWN : change the post in focus
+- ESC : take the focus off the post
+
+## To use as a library
+
 ```rust
 use std::{
   io::{stdout, Write},
