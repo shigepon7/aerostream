@@ -48,6 +48,11 @@ filters:
 - LEFT or RIGHT : change the filter in focus
 - UP or DOWN : change the post in focus
 - ESC : take the focus off the post
+- i : view attached image
+- j : view next attached image
+- k : view previous attached image
+- Backspace : leave image view
+- Enter : open bsky.app in the default browser with current post or image
 
 ## To use as a library
 

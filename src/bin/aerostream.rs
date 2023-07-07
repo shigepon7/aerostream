@@ -12,6 +12,7 @@ use crossterm::execute;
 use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
 };
+use image::{load_from_memory, RgbaImage};
 use textwrap::wrap;
 use tui::backend::{Backend, CrosstermBackend};
 use tui::layout::{Constraint, Direction, Layout};
@@ -19,6 +20,7 @@ use tui::style::{Color, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{Block, Borders, List, ListItem, ListState};
 use tui::{Frame, Terminal};
+use tui_image_rgba_updated::{ColorMode, Image};
 
 struct Post {
   create_at: DateTime<Local>,
@@ -26,6 +28,7 @@ struct Post {
   handle: Option<String>,
   text: Vec<String>,
   blobs: Vec<String>,
+  path: Option<String>,
 }
 
 impl From<&Commit> for Post {
@@ -36,6 +39,7 @@ impl From<&Commit> for Post {
       handle: None,
       text: value.get_post_text(),
       blobs: value.blobs.iter().map(|b| b.to_string()).collect(),
+      path: value.get_post_path(),
     }
   }
 }
@@ -115,7 +119,39 @@ fn ui<B: Backend>(
   f: &mut Frame<B>,
   filters: &mut HashMap<String, (VecDeque<Post>, ListState)>,
   focus: usize,
+  image_status: &mut (Option<String>, Option<RgbaImage>),
 ) {
+  if let Some(img) = &image_status.0 {
+    if let Ok(res) = ureq::get(&img).call() {
+      let mut buf: Vec<u8> = Vec::new();
+      if res.into_reader().read_to_end(&mut buf).is_ok() {
+        if let Ok(img_data) = load_from_memory(buf.as_slice()) {
+          *image_status = (None, Some(img_data.into_rgba8()));
+        }
+      }
+    }
+  }
+  if let Some(img_data) = &image_status.1 {
+    let mut size = f.size().clone();
+    if img_data.width() * (2 * f.size().height as u32) > img_data.height() * (f.size().width as u32)
+    {
+      size.height = (((f.size().width as u32) * img_data.height() / img_data.width()) as u16) / 2;
+    } else {
+      size.width = ((2 * f.size().height as u32) * img_data.width() / img_data.height()) as u16;
+    };
+    f.render_widget(
+      Image::with_img(img_data.clone())
+        .color_mode(ColorMode::Rgb)
+        .block(
+          Block::default()
+            .borders(Borders::ALL)
+            .border_style(Style::default().fg(Color::White))
+            .title("Image"),
+        ),
+      size,
+    );
+    return;
+  }
   let count = filters.len();
   let columns = Layout::default()
     .direction(Direction::Horizontal)
@@ -151,7 +187,18 @@ fn ui<B: Backend>(
 }
 
 fn main() -> Result<()> {
-  env_logger::init();
+  // fern::Dispatch::new()
+  //   .format(|out, message, record| {
+  //     out.finish(format_args!(
+  //       "[{} {}] {}",
+  //       record.level(),
+  //       record.target(),
+  //       message
+  //     ))
+  //   })
+  //   .level(log::LevelFilter::Debug)
+  //   .chain(fern::log_file("output.log")?)
+  //   .apply()?;
   let max_len: usize = std::env::var("MAX_LEN")
     .ok()
     .and_then(|s| s.parse().ok())
@@ -173,18 +220,23 @@ fn main() -> Result<()> {
     .map(|f| (f, (VecDeque::new(), ListState::default())))
     .collect::<HashMap<String, (VecDeque<Post>, ListState)>>();
   let mut focus = 0;
+  let mut image_status = (None, None);
+  let mut image_index = 0;
   if filters.is_empty() {
     filters.insert(String::from(""), (VecDeque::new(), ListState::default()));
   }
-  terminal.draw(|f| ui(f, &mut filters, focus))?;
+  terminal.draw(|f| ui(f, &mut filters, focus, &mut image_status))?;
   loop {
     let mut updated = false;
     for (filter, event) in client.next_event_filtered_all()?.into_iter() {
       if !event.is_empty() {
         if let Some((posts, state)) = filters.get_mut(&filter) {
           if let Some(commit) = event.as_commit() {
+            log::debug!("--- COMMIT {:?}", commit);
             let mut post = Post::from(commit);
+            log::debug!("xxx POST {:?}", post);
             if !post.is_empty() {
+              log::debug!("||| POST {:?}", post);
               post.get_handle(&mut client);
               posts.push_front(post);
               posts.truncate(max_len);
@@ -211,6 +263,113 @@ fn main() -> Result<()> {
               if key.modifiers.contains(KeyModifiers::CONTROL) {
                 terminal.clear()?;
                 updated = true;
+              }
+            }
+            KeyCode::Char('i') => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get(&filter_names[focus]) {
+                if let Some(sel) = state.selected() {
+                  if let Some(p) = posts.get(sel) {
+                    image_status = (p.blobs.first().cloned(), None);
+                    image_index = 0;
+                    updated = true;
+                  }
+                }
+              }
+            }
+            KeyCode::Char('j') => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get_mut(&filter_names[focus]) {
+                if let Some(mut sel) = state.selected() {
+                  if let Some(p) = posts.get(sel) {
+                    image_index += 1;
+                    updated = true;
+                    if image_index >= p.blobs.len() {
+                      sel += 1;
+                      image_index = 0;
+                    } else {
+                      image_status = (p.blobs.get(image_index).cloned(), None);
+                    }
+                  }
+                  if image_index == 0 {
+                    while sel < posts.len() - 1 {
+                      if let Some(p) = posts.get(sel) {
+                        if !p.blobs.is_empty() {
+                          state.select(Some(sel));
+                          image_status = (p.blobs.first().cloned(), None);
+                          break;
+                        }
+                      }
+                      sel += 1;
+                    }
+                    if sel >= posts.len() - 1 {
+                      image_status = (None, None);
+                    }
+                  }
+                }
+              }
+            }
+            KeyCode::Char('k') => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get_mut(&filter_names[focus]) {
+                if let Some(mut sel) = state.selected() {
+                  if let Some(p) = posts.get(sel) {
+                    updated = true;
+                    if image_index > 0 {
+                      image_index -= 1;
+                      image_status = (p.blobs.get(image_index).cloned(), None);
+                    } else {
+                      if sel > 0 {
+                        sel -= 1;
+                      }
+                      image_index = usize::MAX;
+                    }
+                  }
+                  if image_index == usize::MAX {
+                    while sel > 0 {
+                      if let Some(p) = posts.get(sel) {
+                        if !p.blobs.is_empty() {
+                          state.select(Some(sel));
+                          image_status = (p.blobs.first().cloned(), None);
+                          break;
+                        }
+                      }
+                      sel -= 1;
+                    }
+                    if sel == 0 {
+                      image_status = (None, None);
+                    }
+                  }
+                }
+              }
+            }
+            KeyCode::Enter => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get(&filter_names[focus]) {
+                if let Some(sel) = state.selected() {
+                  if let Some(p) = posts.get(sel) {
+                    if image_status.1.is_some() {
+                      if let Some(img) = p.blobs.get(image_index) {
+                        webbrowser::open(img).ok();
+                      }
+                    } else {
+                      log::warn!("{:?}", p);
+                      if let Some(handle) = &p.handle {
+                        if let Some(path) = &p.path {
+                          if let Some(ts) = path.split("/").nth(1) {
+                            let url = format!("https://bsky.app/profile/{}/post/{}", handle, ts);
+                            log::warn!("{}", url);
+                            webbrowser::open(&url).ok();
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
             KeyCode::F(5) => {
@@ -307,6 +466,11 @@ fn main() -> Result<()> {
               for (_, (_, state)) in filters.iter_mut() {
                 state.select(None);
               }
+              image_status = (None, None);
+              updated = true;
+            }
+            KeyCode::Backspace => {
+              image_status = (None, None);
               updated = true;
             }
             _ => (),
@@ -318,7 +482,7 @@ fn main() -> Result<()> {
       }
     }
     if updated {
-      terminal.draw(|f| ui(f, &mut filters, focus))?;
+      terminal.draw(|f| ui(f, &mut filters, focus, &mut image_status))?;
     } else {
       sleep(Duration::from_millis(10));
     }

@@ -260,7 +260,11 @@ impl Filter {
     }
     match &event.payload {
       Payload::Commit(c) => {
-        let posts = c.get_post();
+        let posts = c
+          .get_post()
+          .into_iter()
+          .map(|(_, fp)| fp)
+          .collect::<Vec<_>>();
         match self.is_follows_match(c) {
           true => {
             !self

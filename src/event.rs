@@ -125,20 +125,30 @@ impl From<CommitInner> for Commit {
 
 impl Commit {
   /// Returns the posts included in an operation to the repository
-  pub fn get_post(&self) -> Vec<FeedPost> {
+  pub fn get_post(&self) -> Vec<(String, FeedPost)> {
     self
       .ops
       .iter()
       .filter(|op| op.action == "create" && op.path.starts_with("app.bsky.feed.post"))
-      .filter_map(|op| op.cid)
-      .filter_map(|cid| self.blocks.get(&cid).and_then(|ipld| FeedPost::from(ipld)))
+      .filter_map(|op| op.cid.map(|c| (op.path.clone(), c)))
+      .filter_map(|(path, cid)| {
+        self
+          .blocks
+          .get(&cid)
+          .and_then(|ipld| FeedPost::from(ipld).map(|fp| (path, fp)))
+      })
       .collect()
   }
 
   /// Returns the text of all posts included in an operation to the repository
   pub fn get_post_text(&self) -> Vec<String> {
     log::info!("{:?}", self.get_post());
-    self.get_post().into_iter().map(|fp| fp.text).collect()
+    self.get_post().into_iter().map(|(_, fp)| fp.text).collect()
+  }
+
+  /// Returns the cid of first post included in an operation to the repository
+  pub fn get_post_path(&self) -> Option<String> {
+    self.get_post().first().map(|(path, _)| path.clone())
   }
 }
 
