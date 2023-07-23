@@ -30,6 +30,47 @@ pub struct AppBskyActorDefsPreferences(Vec<AppBskyActorDefsPreferencesItem>);
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsProfileviewbasic {
+  pub did: String,
+  pub handle: String,
+  pub display_name: Option<String>,
+  pub avatar: Option<String>,
+  pub viewer: Option<AppBskyActorDefsViewerstate>,
+  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsProfileview {
+  pub did: String,
+  pub handle: String,
+  pub display_name: Option<String>,
+  pub description: Option<String>,
+  pub avatar: Option<String>,
+  pub indexed_at: Option<DateTime<Utc>>,
+  pub viewer: Option<AppBskyActorDefsViewerstate>,
+  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsProfileviewdetailed {
+  pub did: String,
+  pub handle: String,
+  pub display_name: Option<String>,
+  pub description: Option<String>,
+  pub avatar: Option<String>,
+  pub banner: Option<String>,
+  pub followers_count: Option<i64>,
+  pub follows_count: Option<i64>,
+  pub posts_count: Option<i64>,
+  pub indexed_at: Option<DateTime<Utc>>,
+  pub viewer: Option<AppBskyActorDefsViewerstate>,
+  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsViewerstate {
   pub muted: Option<bool>,
   pub muted_by_list: Option<AppBskyGraphDefsListviewbasic>,
@@ -61,55 +102,23 @@ pub struct AppBskyActorDefsSavedfeedspref {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyActorDefsProfileviewbasic {
-  pub did: String,
-  pub handle: String,
-  pub display_name: Option<String>,
-  pub avatar: Option<String>,
-  pub viewer: Option<AppBskyActorDefsViewerstate>,
-  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+pub struct AppBskyEmbedExternal {
+  pub external: AppBskyEmbedExternalExternal,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyActorDefsProfileviewdetailed {
-  pub did: String,
-  pub handle: String,
-  pub display_name: Option<String>,
-  pub description: Option<String>,
-  pub avatar: Option<String>,
-  pub banner: Option<String>,
-  pub followers_count: Option<i64>,
-  pub follows_count: Option<i64>,
-  pub posts_count: Option<i64>,
-  pub indexed_at: Option<DateTime<Utc>>,
-  pub viewer: Option<AppBskyActorDefsViewerstate>,
-  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyActorDefsProfileview {
-  pub did: String,
-  pub handle: String,
-  pub display_name: Option<String>,
-  pub description: Option<String>,
-  pub avatar: Option<String>,
-  pub indexed_at: Option<DateTime<Utc>>,
-  pub viewer: Option<AppBskyActorDefsViewerstate>,
-  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+pub struct AppBskyEmbedExternalExternal {
+  pub uri: String,
+  pub title: String,
+  pub description: String,
+  pub thumb: Option<Blob>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternalView {
   pub external: AppBskyEmbedExternalViewexternal,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedExternal {
-  pub external: AppBskyEmbedExternalExternal,
 }
 
 #[skip_serializing_none]
@@ -123,11 +132,15 @@ pub struct AppBskyEmbedExternalViewexternal {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedExternalExternal {
-  pub uri: String,
-  pub title: String,
-  pub description: String,
-  pub thumb: Option<Blob>,
+pub struct AppBskyEmbedImages {
+  pub images: Vec<AppBskyEmbedImagesImage>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyEmbedImagesImage {
+  pub image: Blob,
+  pub alt: String,
 }
 
 #[skip_serializing_none]
@@ -146,15 +159,14 @@ pub struct AppBskyEmbedImagesViewimage {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedImages {
-  pub images: Vec<AppBskyEmbedImagesImage>,
+pub struct AppBskyEmbedRecord {
+  pub record: ComAtprotoRepoStrongref,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedImagesImage {
-  pub image: Blob,
-  pub alt: String,
+pub struct AppBskyEmbedRecordView {
+  pub record: AppBskyEmbedRecordViewRecord,
 }
 
 #[skip_serializing_none]
@@ -172,33 +184,14 @@ pub struct AppBskyEmbedRecordViewrecord {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedRecord {
-  pub record: ComAtprotoRepoStrongref,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecordViewnotfound {
   pub uri: String,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedRecordView {
-  pub record: AppBskyEmbedRecordViewRecord,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecordViewblocked {
   pub uri: String,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyEmbedRecordwithmediaView {
-  pub record: AppBskyEmbedRecordView,
-  pub media: AppBskyEmbedRecordwithmediaViewMedia,
 }
 
 #[skip_serializing_none]
@@ -210,10 +203,72 @@ pub struct AppBskyEmbedRecordwithmedia {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyEmbedRecordwithmediaView {
+  pub record: AppBskyEmbedRecordView,
+  pub media: AppBskyEmbedRecordwithmediaViewMedia,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsPostview {
+  pub uri: String,
+  pub cid: CidString,
+  pub author: AppBskyActorDefsProfileviewbasic,
+  pub record: Record,
+  #[serde(rename = "indexedAt")]
+  pub indexed_at: DateTime<Utc>,
+  pub embed: Option<AppBskyFeedDefsPostviewEmbed>,
+  pub reply_count: Option<i64>,
+  pub repost_count: Option<i64>,
+  pub like_count: Option<i64>,
+  pub viewer: Option<AppBskyFeedDefsViewerstate>,
+  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsViewerstate {
+  pub repost: Option<String>,
+  pub like: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsFeedviewpost {
+  pub post: AppBskyFeedDefsPostview,
+  pub reply: Option<AppBskyFeedDefsReplyref>,
+  pub reason: Option<AppBskyFeedDefsFeedviewpostReason>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsReplyref {
+  pub root: AppBskyFeedDefsReplyrefRoot,
+  pub parent: AppBskyFeedDefsReplyrefParent,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDefsReasonrepost {
   pub by: AppBskyActorDefsProfileviewbasic,
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsThreadviewpost {
+  pub post: AppBskyFeedDefsPostview,
+  pub parent: Option<AppBskyFeedDefsThreadviewpostParent>,
+  pub replies: Option<Vec<AppBskyFeedDefsThreadviewpostRepliesItem>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsNotfoundpost {
+  pub uri: String,
+  #[serde(rename = "notFound")]
+  pub not_found: bool,
 }
 
 #[skip_serializing_none]
@@ -243,10 +298,8 @@ pub struct AppBskyFeedDefsGeneratorview {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsThreadviewpost {
-  pub post: AppBskyFeedDefsPostview,
-  pub parent: Option<AppBskyFeedDefsThreadviewpostParent>,
-  pub replies: Option<Vec<AppBskyFeedDefsThreadviewpostRepliesItem>>,
+pub struct AppBskyFeedDefsGeneratorviewerstate {
+  pub like: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -264,55 +317,8 @@ pub struct AppBskyFeedDefsSkeletonreasonrepost {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsViewerstate {
-  pub repost: Option<String>,
-  pub like: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsFeedviewpost {
-  pub post: AppBskyFeedDefsPostview,
-  pub reply: Option<AppBskyFeedDefsReplyref>,
-  pub reason: Option<AppBskyFeedDefsFeedviewpostReason>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsGeneratorviewerstate {
-  pub like: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsReplyref {
-  pub root: AppBskyFeedDefsReplyrefRoot,
-  pub parent: AppBskyFeedDefsReplyrefParent,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsPostview {
+pub struct AppBskyFeedDescribefeedgeneratorFeed {
   pub uri: String,
-  pub cid: CidString,
-  pub author: AppBskyActorDefsProfileviewbasic,
-  pub record: Record,
-  #[serde(rename = "indexedAt")]
-  pub indexed_at: DateTime<Utc>,
-  pub embed: Option<AppBskyFeedDefsPostviewEmbed>,
-  pub reply_count: Option<i64>,
-  pub repost_count: Option<i64>,
-  pub like_count: Option<i64>,
-  pub viewer: Option<AppBskyFeedDefsViewerstate>,
-  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsNotfoundpost {
-  pub uri: String,
-  #[serde(rename = "notFound")]
-  pub not_found: bool,
 }
 
 #[skip_serializing_none]
@@ -320,12 +326,6 @@ pub struct AppBskyFeedDefsNotfoundpost {
 pub struct AppBskyFeedDescribefeedgeneratorLinks {
   pub privacy_policy: Option<String>,
   pub terms_of_service: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDescribefeedgeneratorFeed {
-  pub uri: String,
 }
 
 #[skip_serializing_none]
@@ -345,14 +345,6 @@ pub struct AppBskyFeedPostReplyref {
   pub parent: ComAtprotoRepoStrongref,
 }
 
-/// Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedPostTextslice {
-  pub start: i64,
-  pub end: i64,
-}
-
 /// Deprecated: use facets instead.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -361,6 +353,14 @@ pub struct AppBskyFeedPostEntity {
   #[serde(rename = "type")]
   pub value_type: String,
   pub value: String,
+}
+
+/// Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedPostTextslice {
+  pub start: i64,
+  pub end: i64,
 }
 
 #[skip_serializing_none]
@@ -373,18 +373,6 @@ pub struct AppBskyGraphDefsListviewbasic {
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyGraphDefsListviewerstate>,
   pub indexed_at: Option<DateTime<Utc>>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyGraphDefsListitemview {
-  pub subject: AppBskyActorDefsProfileview,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyGraphDefsListviewerstate {
-  pub muted: Option<bool>,
 }
 
 #[skip_serializing_none]
@@ -405,6 +393,18 @@ pub struct AppBskyGraphDefsListview {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyGraphDefsListitemview {
+  pub subject: AppBskyActorDefsProfileview,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyGraphDefsListviewerstate {
+  pub muted: Option<bool>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyNotificationListnotificationsNotification {
   pub uri: String,
   pub cid: CidString,
@@ -419,23 +419,6 @@ pub struct AppBskyNotificationListnotificationsNotification {
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
 }
 
-/// A text segment. Start is inclusive, end is exclusive. Indices are for utf8-encoded strings.
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyRichtextFacetByteslice {
-  #[serde(rename = "byteStart")]
-  pub byte_start: i64,
-  #[serde(rename = "byteEnd")]
-  pub byte_end: i64,
-}
-
-/// A facet feature for links.
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyRichtextFacetLink {
-  pub uri: String,
-}
-
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacet {
@@ -448,6 +431,23 @@ pub struct AppBskyRichtextFacet {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetMention {
   pub did: String,
+}
+
+/// A facet feature for links.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyRichtextFacetLink {
+  pub uri: String,
+}
+
+/// A text segment. Start is inclusive, end is exclusive. Indices are for utf8-encoded strings.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyRichtextFacetByteslice {
+  #[serde(rename = "byteStart")]
+  pub byte_start: i64,
+  #[serde(rename = "byteEnd")]
+  pub byte_end: i64,
 }
 
 #[skip_serializing_none]
@@ -472,37 +472,6 @@ pub struct ComAtprotoAdminDefsActionview {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsReportview {
-  pub id: i64,
-  #[serde(rename = "reasonType")]
-  pub reason_type: ComAtprotoModerationDefsReasontype,
-  pub subject: ComAtprotoAdminDefsReportviewSubject,
-  #[serde(rename = "reportedBy")]
-  pub reported_by: String,
-  #[serde(rename = "createdAt")]
-  pub created_at: DateTime<Utc>,
-  #[serde(rename = "resolvedByActionIds")]
-  pub resolved_by_action_ids: Vec<i64>,
-  pub reason: Option<String>,
-  pub subject_repo_handle: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsRecordviewdetail {
-  pub uri: String,
-  pub cid: CidString,
-  pub value: Record,
-  pub blobs: Vec<ComAtprotoAdminDefsBlobview>,
-  #[serde(rename = "indexedAt")]
-  pub indexed_at: DateTime<Utc>,
-  pub moderation: ComAtprotoAdminDefsModerationdetail,
-  pub repo: ComAtprotoAdminDefsRepoview,
-  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsActionviewdetail {
   pub id: i64,
   pub action: ComAtprotoAdminDefsActiontype,
@@ -523,23 +492,9 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsRepoview {
-  pub did: String,
-  pub handle: String,
-  #[serde(rename = "relatedRecords")]
-  pub related_records: Vec<Record>,
-  #[serde(rename = "indexedAt")]
-  pub indexed_at: DateTime<Utc>,
-  pub moderation: ComAtprotoAdminDefsModeration,
-  pub email: Option<String>,
-  pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
-  pub invites_disabled: Option<bool>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsReporef {
-  pub did: String,
+pub struct ComAtprotoAdminDefsActionviewcurrent {
+  pub id: i64,
+  pub action: ComAtprotoAdminDefsActiontype,
 }
 
 #[skip_serializing_none]
@@ -554,64 +509,19 @@ pub struct ComAtprotoAdminDefsActionreversal {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsModeration {
-  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsVideodetails {
-  pub width: i64,
-  pub height: i64,
-  pub length: i64,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsBlobview {
-  pub cid: CidString,
-  #[serde(rename = "mimeType")]
-  pub mime_type: String,
-  pub size: i64,
+pub struct ComAtprotoAdminDefsReportview {
+  pub id: i64,
+  #[serde(rename = "reasonType")]
+  pub reason_type: ComAtprotoModerationDefsReasontype,
+  pub subject: ComAtprotoAdminDefsReportviewSubject,
+  #[serde(rename = "reportedBy")]
+  pub reported_by: String,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
-  pub details: Option<ComAtprotoAdminDefsBlobviewDetails>,
-  pub moderation: Option<ComAtprotoAdminDefsModeration>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsRepoviewnotfound {
-  pub did: String,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsRecordview {
-  pub uri: String,
-  pub cid: CidString,
-  pub value: Record,
-  #[serde(rename = "blobCids")]
-  pub blob_cids: Vec<CidString>,
-  #[serde(rename = "indexedAt")]
-  pub indexed_at: DateTime<Utc>,
-  pub moderation: ComAtprotoAdminDefsModeration,
-  pub repo: ComAtprotoAdminDefsRepoview,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsModerationdetail {
-  pub actions: Vec<ComAtprotoAdminDefsActionview>,
-  pub reports: Vec<ComAtprotoAdminDefsReportview>,
-  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsImagedetails {
-  pub width: i64,
-  pub height: i64,
+  #[serde(rename = "resolvedByActionIds")]
+  pub resolved_by_action_ids: Vec<i64>,
+  pub reason: Option<String>,
+  pub subject_repo_handle: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -628,6 +538,21 @@ pub struct ComAtprotoAdminDefsReportviewdetail {
   #[serde(rename = "resolvedByActions")]
   pub resolved_by_actions: Vec<ComAtprotoAdminDefsActionview>,
   pub reason: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsRepoview {
+  pub did: String,
+  pub handle: String,
+  #[serde(rename = "relatedRecords")]
+  pub related_records: Vec<Record>,
+  #[serde(rename = "indexedAt")]
+  pub indexed_at: DateTime<Utc>,
+  pub moderation: ComAtprotoAdminDefsModeration,
+  pub email: Option<String>,
+  pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
+  pub invites_disabled: Option<bool>,
 }
 
 #[skip_serializing_none]
@@ -649,15 +574,90 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsRepoviewnotfound {
+  pub did: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsReporef {
+  pub did: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsRecordview {
+  pub uri: String,
+  pub cid: CidString,
+  pub value: Record,
+  #[serde(rename = "blobCids")]
+  pub blob_cids: Vec<CidString>,
+  #[serde(rename = "indexedAt")]
+  pub indexed_at: DateTime<Utc>,
+  pub moderation: ComAtprotoAdminDefsModeration,
+  pub repo: ComAtprotoAdminDefsRepoview,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsRecordviewdetail {
+  pub uri: String,
+  pub cid: CidString,
+  pub value: Record,
+  pub blobs: Vec<ComAtprotoAdminDefsBlobview>,
+  #[serde(rename = "indexedAt")]
+  pub indexed_at: DateTime<Utc>,
+  pub moderation: ComAtprotoAdminDefsModerationdetail,
+  pub repo: ComAtprotoAdminDefsRepoview,
+  pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsRecordviewnotfound {
   pub uri: String,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActionviewcurrent {
-  pub id: i64,
-  pub action: ComAtprotoAdminDefsActiontype,
+pub struct ComAtprotoAdminDefsModeration {
+  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModerationdetail {
+  pub actions: Vec<ComAtprotoAdminDefsActionview>,
+  pub reports: Vec<ComAtprotoAdminDefsReportview>,
+  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsBlobview {
+  pub cid: CidString,
+  #[serde(rename = "mimeType")]
+  pub mime_type: String,
+  pub size: i64,
+  #[serde(rename = "createdAt")]
+  pub created_at: DateTime<Utc>,
+  pub details: Option<ComAtprotoAdminDefsBlobviewDetails>,
+  pub moderation: Option<ComAtprotoAdminDefsModeration>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsImagedetails {
+  pub width: i64,
+  pub height: i64,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsVideodetails {
+  pub width: i64,
+  pub height: i64,
+  pub length: i64,
 }
 
 /// Metadata tag on an atproto resource (eg, repo or record)
@@ -674,16 +674,25 @@ pub struct ComAtprotoLabelDefsLabel {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoLabelSubscribelabelsLabels {
+  pub seq: i64,
+  pub labels: Vec<ComAtprotoLabelDefsLabel>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoLabelSubscribelabelsInfo {
   pub name: String,
   pub message: Option<String>,
 }
 
+/// Create a new record.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoLabelSubscribelabelsLabels {
-  pub seq: i64,
-  pub labels: Vec<ComAtprotoLabelDefsLabel>,
+pub struct ComAtprotoRepoApplywritesCreate {
+  pub collection: String,
+  pub value: Record,
+  pub rkey: Option<String>,
 }
 
 /// Update an existing record.
@@ -701,15 +710,6 @@ pub struct ComAtprotoRepoApplywritesUpdate {
 pub struct ComAtprotoRepoApplywritesDelete {
   pub collection: String,
   pub rkey: String,
-}
-
-/// Create a new record.
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoRepoApplywritesCreate {
-  pub collection: String,
-  pub value: Record,
-  pub rkey: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -791,10 +791,18 @@ pub struct ComAtprotoSyncListreposRepo {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoSyncSubscribereposRepoop {
-  pub action: String,
-  pub path: String,
-  pub cid: String,
+pub struct ComAtprotoSyncSubscribereposCommit {
+  pub seq: i64,
+  pub rebase: bool,
+  #[serde(rename = "tooBig")]
+  pub too_big: bool,
+  pub repo: String,
+  pub commit: String,
+  pub prev: String,
+  pub blocks: Vec<u8>,
+  pub ops: Vec<ComAtprotoSyncSubscribereposRepoop>,
+  pub blobs: Vec<String>,
+  pub time: DateTime<Utc>,
 }
 
 #[skip_serializing_none]
@@ -818,22 +826,6 @@ pub struct ComAtprotoSyncSubscribereposMigrate {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoSyncSubscribereposCommit {
-  pub seq: i64,
-  pub rebase: bool,
-  #[serde(rename = "tooBig")]
-  pub too_big: bool,
-  pub repo: String,
-  pub commit: String,
-  pub prev: String,
-  pub blocks: Vec<u8>,
-  pub ops: Vec<ComAtprotoSyncSubscribereposRepoop>,
-  pub blobs: Vec<String>,
-  pub time: DateTime<Utc>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposTombstone {
   pub seq: i64,
   pub did: String,
@@ -845,6 +837,14 @@ pub struct ComAtprotoSyncSubscribereposTombstone {
 pub struct ComAtprotoSyncSubscribereposInfo {
   pub name: String,
   pub message: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoSyncSubscribereposRepoop {
+  pub action: String,
+  pub path: String,
+  pub cid: String,
 }
 
 #[skip_serializing_none]
@@ -1626,25 +1626,6 @@ impl Default for AppBskyActorDefsPreferencesItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum AppBskyEmbedRecordViewrecordEmbedsItem {
-  #[serde(rename = "app.bsky.embed.images#view")]
-  AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
-  #[serde(rename = "app.bsky.embed.external#view")]
-  AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
-  #[serde(rename = "app.bsky.embed.record#view")]
-  AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
-  #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-  AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
-}
-
-impl Default for AppBskyEmbedRecordViewrecordEmbedsItem {
-  fn default() -> Self {
-    Self::AppBskyEmbedImagesView(Box::new(AppBskyEmbedImagesView::default()))
-  }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "$type")]
 pub enum AppBskyEmbedRecordViewRecord {
   #[serde(rename = "app.bsky.embed.record#viewRecord")]
   AppBskyEmbedRecordViewrecord(Box<AppBskyEmbedRecordViewrecord>),
@@ -1666,14 +1647,18 @@ impl Default for AppBskyEmbedRecordViewRecord {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum AppBskyEmbedRecordwithmediaViewMedia {
+pub enum AppBskyEmbedRecordViewrecordEmbedsItem {
   #[serde(rename = "app.bsky.embed.images#view")]
   AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
   #[serde(rename = "app.bsky.embed.external#view")]
   AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
+  #[serde(rename = "app.bsky.embed.record#view")]
+  AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
+  #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
+  AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
 }
 
-impl Default for AppBskyEmbedRecordwithmediaViewMedia {
+impl Default for AppBskyEmbedRecordViewrecordEmbedsItem {
   fn default() -> Self {
     Self::AppBskyEmbedImagesView(Box::new(AppBskyEmbedImagesView::default()))
   }
@@ -1696,50 +1681,35 @@ impl Default for AppBskyEmbedRecordwithmediaMainMedia {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum AppBskyFeedDefsThreadviewpostParent {
-  #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
-  AppBskyFeedDefsThreadviewpost(Box<AppBskyFeedDefsThreadviewpost>),
-  #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
-  AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
-  #[serde(rename = "app.bsky.feed.defs#blockedPost")]
-  AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+pub enum AppBskyEmbedRecordwithmediaViewMedia {
+  #[serde(rename = "app.bsky.embed.images#view")]
+  AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
+  #[serde(rename = "app.bsky.embed.external#view")]
+  AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
 }
 
-impl Default for AppBskyFeedDefsThreadviewpostParent {
+impl Default for AppBskyEmbedRecordwithmediaViewMedia {
   fn default() -> Self {
-    Self::AppBskyFeedDefsThreadviewpost(Box::new(AppBskyFeedDefsThreadviewpost::default()))
+    Self::AppBskyEmbedImagesView(Box::new(AppBskyEmbedImagesView::default()))
   }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum AppBskyFeedDefsThreadviewpostRepliesItem {
-  #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
-  AppBskyFeedDefsThreadviewpost(Box<AppBskyFeedDefsThreadviewpost>),
-  #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
-  AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
-  #[serde(rename = "app.bsky.feed.defs#blockedPost")]
-  AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+pub enum AppBskyFeedDefsPostviewEmbed {
+  #[serde(rename = "app.bsky.embed.images#view")]
+  AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
+  #[serde(rename = "app.bsky.embed.external#view")]
+  AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
+  #[serde(rename = "app.bsky.embed.record#view")]
+  AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
+  #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
+  AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
 }
 
-impl Default for AppBskyFeedDefsThreadviewpostRepliesItem {
+impl Default for AppBskyFeedDefsPostviewEmbed {
   fn default() -> Self {
-    Self::AppBskyFeedDefsThreadviewpost(Box::new(AppBskyFeedDefsThreadviewpost::default()))
-  }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "$type")]
-pub enum AppBskyFeedDefsSkeletonfeedpostReason {
-  #[serde(rename = "app.bsky.feed.defs#skeletonReasonRepost")]
-  AppBskyFeedDefsSkeletonreasonrepost(Box<AppBskyFeedDefsSkeletonreasonrepost>),
-}
-
-impl Default for AppBskyFeedDefsSkeletonfeedpostReason {
-  fn default() -> Self {
-    Self::AppBskyFeedDefsSkeletonreasonrepost(Box::new(
-      AppBskyFeedDefsSkeletonreasonrepost::default(),
-    ))
+    Self::AppBskyEmbedImagesView(Box::new(AppBskyEmbedImagesView::default()))
   }
 }
 
@@ -1792,20 +1762,50 @@ impl Default for AppBskyFeedDefsReplyrefParent {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum AppBskyFeedDefsPostviewEmbed {
-  #[serde(rename = "app.bsky.embed.images#view")]
-  AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
-  #[serde(rename = "app.bsky.embed.external#view")]
-  AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
-  #[serde(rename = "app.bsky.embed.record#view")]
-  AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
-  #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
-  AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
+pub enum AppBskyFeedDefsThreadviewpostParent {
+  #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
+  AppBskyFeedDefsThreadviewpost(Box<AppBskyFeedDefsThreadviewpost>),
+  #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
+  AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
+  #[serde(rename = "app.bsky.feed.defs#blockedPost")]
+  AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
 }
 
-impl Default for AppBskyFeedDefsPostviewEmbed {
+impl Default for AppBskyFeedDefsThreadviewpostParent {
   fn default() -> Self {
-    Self::AppBskyEmbedImagesView(Box::new(AppBskyEmbedImagesView::default()))
+    Self::AppBskyFeedDefsThreadviewpost(Box::new(AppBskyFeedDefsThreadviewpost::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum AppBskyFeedDefsThreadviewpostRepliesItem {
+  #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
+  AppBskyFeedDefsThreadviewpost(Box<AppBskyFeedDefsThreadviewpost>),
+  #[serde(rename = "app.bsky.feed.defs#notFoundPost")]
+  AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
+  #[serde(rename = "app.bsky.feed.defs#blockedPost")]
+  AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+}
+
+impl Default for AppBskyFeedDefsThreadviewpostRepliesItem {
+  fn default() -> Self {
+    Self::AppBskyFeedDefsThreadviewpost(Box::new(AppBskyFeedDefsThreadviewpost::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum AppBskyFeedDefsSkeletonfeedpostReason {
+  #[serde(rename = "app.bsky.feed.defs#skeletonReasonRepost")]
+  AppBskyFeedDefsSkeletonreasonrepost(Box<AppBskyFeedDefsSkeletonreasonrepost>),
+}
+
+impl Default for AppBskyFeedDefsSkeletonfeedpostReason {
+  fn default() -> Self {
+    Self::AppBskyFeedDefsSkeletonreasonrepost(Box::new(
+      AppBskyFeedDefsSkeletonreasonrepost::default(),
+    ))
   }
 }
 
@@ -1877,21 +1877,6 @@ impl Default for ComAtprotoAdminDefsActionviewSubject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum ComAtprotoAdminDefsReportviewSubject {
-  #[serde(rename = "com.atproto.admin.defs#repoRef")]
-  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
-  #[serde(rename = "com.atproto.repo.strongRef")]
-  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
-}
-
-impl Default for ComAtprotoAdminDefsReportviewSubject {
-  fn default() -> Self {
-    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
-  }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "$type")]
 pub enum ComAtprotoAdminDefsActionviewdetailSubject {
   #[serde(rename = "com.atproto.admin.defs#repoView")]
   ComAtprotoAdminDefsRepoview(Box<ComAtprotoAdminDefsRepoview>),
@@ -1911,16 +1896,16 @@ impl Default for ComAtprotoAdminDefsActionviewdetailSubject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum ComAtprotoAdminDefsBlobviewDetails {
-  #[serde(rename = "com.atproto.admin.defs#imageDetails")]
-  ComAtprotoAdminDefsImagedetails(Box<ComAtprotoAdminDefsImagedetails>),
-  #[serde(rename = "com.atproto.admin.defs#videoDetails")]
-  ComAtprotoAdminDefsVideodetails(Box<ComAtprotoAdminDefsVideodetails>),
+pub enum ComAtprotoAdminDefsReportviewSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
 }
 
-impl Default for ComAtprotoAdminDefsBlobviewDetails {
+impl Default for ComAtprotoAdminDefsReportviewSubject {
   fn default() -> Self {
-    Self::ComAtprotoAdminDefsImagedetails(Box::new(ComAtprotoAdminDefsImagedetails::default()))
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
   }
 }
 
@@ -1940,6 +1925,21 @@ pub enum ComAtprotoAdminDefsReportviewdetailSubject {
 impl Default for ComAtprotoAdminDefsReportviewdetailSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsRepoview(Box::new(ComAtprotoAdminDefsRepoview::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminDefsBlobviewDetails {
+  #[serde(rename = "com.atproto.admin.defs#imageDetails")]
+  ComAtprotoAdminDefsImagedetails(Box<ComAtprotoAdminDefsImagedetails>),
+  #[serde(rename = "com.atproto.admin.defs#videoDetails")]
+  ComAtprotoAdminDefsVideodetails(Box<ComAtprotoAdminDefsVideodetails>),
+}
+
+impl Default for ComAtprotoAdminDefsBlobviewDetails {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsImagedetails(Box::new(ComAtprotoAdminDefsImagedetails::default()))
   }
 }
 
