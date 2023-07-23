@@ -4,7 +4,7 @@ Aerostream is Bluesky client using EventStream.
 
 It can be used as a library or as a command line tool.
 
-## To use as a command line tool.
+## To use as a command line tool
 
 ```shell
 cargo install aerostream
@@ -67,7 +67,6 @@ use anyhow::Result;
 use chrono::Local;
 
 fn main() -> Result<()> {
-  env_logger::init();
   let mut client = Client::default();
   client.set_timeout(5);
   client.connect_ws()?;

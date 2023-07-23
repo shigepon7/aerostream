@@ -1,24 +1,25 @@
 //! HTTP and WebSocket clients to connect to Bluesky
 use std::collections::HashMap;
 use std::fs::File;
+use std::path::Path;
 use std::sync::mpsc::{channel, Receiver, Sender};
 use std::sync::{Arc, Mutex};
 use std::thread::{sleep, spawn, JoinHandle};
 use std::time::Duration;
 
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use chrono::{DateTime, Datelike, Utc};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use serde::Deserialize;
 use tungstenite::Message;
-use ureq::{Agent, AgentBuilder, Proxy};
 
+use crate::api::*;
 use crate::{Event, Filters};
 
 /// Client to use Bluesky server
 pub struct Client {
-  agent: Agent,
-  host: String,
-  repo_store: Arc<Mutex<HashMap<String, Repo>>>,
+  pub client: crate::api::Client,
+  repo: Option<String>,
+  repo_store: Arc<Mutex<HashMap<String, ComAtprotoRepoDescriberepo>>>,
   handle_store: Arc<Mutex<HashMap<String, String>>>,
   thread: Option<JoinHandle<()>>,
   rx: Arc<Mutex<HashMap<String, Receiver<Event>>>>,
@@ -30,8 +31,8 @@ pub struct Client {
 impl Clone for Client {
   fn clone(&self) -> Self {
     Self {
-      agent: self.agent.clone(),
-      host: self.host.clone(),
+      client: crate::api::Client::new(self.client.get_host(), self.client.get_proxy()),
+      repo: None,
       repo_store: Arc::clone(&self.repo_store),
       handle_store: Arc::clone(&self.handle_store),
       thread: None,
@@ -45,18 +46,12 @@ impl Clone for Client {
 
 impl Default for Client {
   fn default() -> Self {
-    let mut agent = AgentBuilder::new();
-    if let Some(proxy) = std::env::var("HTTPS_PROXY")
+    let proxy = std::env::var("HTTPS_PROXY")
       .ok()
-      .or_else(|| std::env::var("https_proxy").ok())
-    {
-      if let Ok(p) = Proxy::new(proxy) {
-        agent = agent.proxy(p);
-      }
-    }
+      .or_else(|| std::env::var("https_proxy").ok());
     let mut client = Self {
-      agent: agent.build(),
-      host: String::from("bsky.social"),
+      client: crate::api::Client::new("bsky.social", proxy),
+      repo: None,
       repo_store: Arc::new(Mutex::new(HashMap::new())),
       handle_store: Arc::new(Mutex::new(HashMap::new())),
       thread: None,
@@ -85,15 +80,8 @@ fn receiver_thread(
   let mut last_seq = None;
   let mut is_terminating = false;
   loop {
-    let url = match last_seq {
-      Some(seq) => format!(
-        "wss://{}/xrpc/com.atproto.sync.subscribeRepos?cursor={}",
-        host, seq
-      ),
-      None => format!("wss://{}/xrpc/com.atproto.sync.subscribeRepos", host),
-    };
-    log::info!("{}", url);
-    let (mut ws, _) = match tungstenite::connect(&url) {
+    let client = crate::api::Client::new(&host, None::<&str>);
+    let mut ws = match client.com_atproto_sync_subscriberepos(last_seq) {
       Ok(res) => res,
       Err(e) => {
         log::warn!("WebSocket connect error : {}", e);
@@ -106,7 +94,13 @@ fn receiver_thread(
       match ws.read_message() {
         Ok(Message::Binary(b)) => {
           log::debug!("RECEIVED BINARY MESSAGE");
-          let event = Event::from(b.as_slice());
+          let event = match Event::try_from(b.as_slice()) {
+            Ok(e) => e,
+            Err(e) => {
+              log::debug!("{}", e);
+              continue;
+            }
+          };
           if let Some(seq) = event.get_seq() {
             last_seq = Some(seq);
           }
@@ -165,7 +159,7 @@ impl Client {
 
   /// Set Host
   pub fn set_host<T: ToString>(&mut self, host: T) {
-    self.host = host.to_string();
+    self.client = crate::api::Client::new(host, self.client.get_proxy());
   }
 
   /// Set timeout for waiting to receive WebSocket events
@@ -173,9 +167,84 @@ impl Client {
     self.timeout = chrono::Duration::seconds(seconds);
   }
 
+  /// Login to Bluesky server
+  pub fn login<T1: ToString, T2: ToString>(&mut self, id: T1, pw: T2) -> Result<()> {
+    let id = id.to_string();
+    let session = self
+      .client
+      .com_atproto_server_createsession(&id, &pw.to_string())?;
+    self.client.set_jwt(Some(session.access_jwt));
+    self.repo = self
+      .client
+      .com_atproto_identity_resolvehandle(&id)
+      .ok()
+      .map(|h| h.did);
+    Ok(())
+  }
+
+  /// Post text to Bluesky server
+  pub fn post<T: ToString>(&self, text: T) -> Result<()> {
+    let repo = self.repo.as_ref().ok_or_else(|| anyhow!("no login"))?;
+    let post = AppBskyFeedPost {
+      text: text.to_string(),
+      created_at: Utc::now(),
+      ..Default::default()
+    };
+    let record = Record::AppBskyFeedPost(post);
+    self.client.com_atproto_repo_createrecord(
+      repo,
+      "app.bsky.feed.post",
+      &record,
+      None,
+      None,
+      None,
+    )?;
+    Ok(())
+  }
+
+  /// Post image to Bluesky server
+  pub fn post_image<T1: ToString, P: AsRef<Path>, T2: ToString>(
+    &self,
+    text: T1,
+    file: P,
+    content_type: T2,
+  ) -> Result<()> {
+    let repo = self.repo.as_ref().ok_or_else(|| anyhow!("no login"))?;
+    let file = std::fs::read(file)?;
+    let blob = self
+      .client
+      .com_atproto_repo_uploadblob(&file, &content_type.to_string())?;
+    let image = AppBskyEmbedImagesImage {
+      alt: text.to_string(),
+      image: blob.blob.clone(),
+    };
+    let images = AppBskyEmbedImages {
+      images: vec![image],
+    };
+    let embed = Some(AppBskyFeedPostMainEmbed::AppBskyEmbedImages(Box::new(
+      images,
+    )));
+    let post = AppBskyFeedPost {
+      text: text.to_string(),
+      created_at: Utc::now(),
+      embed,
+      ..Default::default()
+    };
+    let record = Record::AppBskyFeedPost(post);
+    self.client.com_atproto_repo_createrecord(
+      repo,
+      "app.bsky.feed.post",
+      &record,
+      None,
+      None,
+      None,
+    )?;
+    Ok(())
+  }
+
   /// Connect to WebSocket
   pub fn connect_ws(&mut self) -> Result<()> {
-    let host = self.host.clone();
+    let host = self.client.get_host();
     let mut tx_map = HashMap::new();
     let mut rx_map = HashMap::new();
     if let Ok(filters) = self.filters.lock() {
@@ -228,9 +297,7 @@ impl Client {
       Ok(rx_map) => {
         for (name, rx) in rx_map.iter() {
           while let Ok(event) = rx.try_recv() {
-            if !event.is_empty() {
-              ret.push((name.clone(), event));
-            }
+            ret.push((name.clone(), event));
           }
         }
       }
@@ -257,7 +324,7 @@ impl Client {
       }
       Err(e) => bail!("{}", e),
     }
-    if !self.check_and_restart_websocket()? && event.is_empty() {
+    if !self.check_and_restart_websocket()? {
       sleep(Duration::from_millis(10));
     }
     Ok(event)
@@ -268,41 +335,8 @@ impl Client {
     self.next_event_filtered("")
   }
 
-  fn request<S: Serialize, D: DeserializeOwned>(
-    &self,
-    method: &str,
-    xrpc: &str,
-    query: &[(&str, String)],
-    body: Option<S>,
-  ) -> Result<D> {
-    let mut request = self
-      .agent
-      .request(method, &format!("https://{}/xrpc/{}", self.host, xrpc));
-    if !query.is_empty() {
-      request = request.query_pairs(query.iter().map(|(k, v)| (*k, v.as_str())));
-    }
-    log::debug!("HTTP REQUEST {} {}", method, xrpc);
-    let ret = if let Some(b) = body {
-      request.send_json(b)?.into_json::<D>()?
-    } else {
-      request.call()?.into_json::<D>()?
-    };
-    log::debug!("HTTP RESPONSE {} {}", method, xrpc);
-    Ok(ret)
-  }
-
-  /// Call com.atproto.repo.describeRepo to return repository information
-  pub fn describe_repo<T: ToString>(&self, did: T) -> Result<Repo> {
-    Ok(self.request(
-      "GET",
-      "com.atproto.repo.describeRepo",
-      &[("repo", did.to_string())],
-      None::<&str>,
-    )?)
-  }
-
   /// Return repository information via cache
-  pub fn get_repo<T: ToString>(&mut self, did: T) -> Result<Repo> {
+  pub fn get_repo<T: ToString>(&mut self, did: T) -> Result<ComAtprotoRepoDescriberepo> {
     let did = did.to_string();
     if let Ok(mut repo_store) = self.repo_store.lock() {
       match repo_store.get(&did) {
@@ -310,27 +344,13 @@ impl Client {
           return Ok(r.clone());
         }
         None => {
-          let repo = self.describe_repo(&did)?;
+          let repo = self.client.com_atproto_repo_describerepo(&did)?;
           repo_store.insert(did, repo.clone());
           return Ok(repo);
         }
       }
     }
     self.get_repo(did)
-  }
-
-  /// Call com.atproto.identity.resolveHandle to return DID information
-  pub fn resolve_handle<T: ToString>(&self, handle: T) -> Result<String> {
-    let result = self.request::<&str, HashMap<String, String>>(
-      "GET",
-      "com.atproto.identity.resolveHandle",
-      &[("handle", handle.to_string())],
-      None,
-    )?;
-    Ok(match result.get("did") {
-      Some(d) => d.clone(),
-      None => bail!("No such handle"),
-    })
   }
 
   /// Return DID information via cache
@@ -342,13 +362,19 @@ impl Client {
           return Ok(h.clone());
         }
         None => {
-          let did = self.resolve_handle(&handle)?;
-          handle_store.insert(handle, did.clone());
-          return Ok(did);
+          let did = self.client.com_atproto_identity_resolvehandle(&handle)?;
+          handle_store.insert(handle, did.did.clone());
+          return Ok(did.did.clone());
         }
       }
     }
-    self.resolve_handle(handle)
+    Ok(
+      self
+        .client
+        .com_atproto_identity_resolvehandle(&handle)?
+        .did
+        .clone(),
+    )
   }
 
   /// Get Filter names
@@ -410,6 +436,28 @@ impl Client {
     let did = self.get_handle(handle)?;
     self.unsubscribe_repo(name, did)?;
     Ok(())
+  }
+
+  /// Add a Timeline Filter of user given by name
+  pub fn add_timeline<T: ToString>(&mut self, handle: T) -> Result<()> {
+    let filters = match self.filters.lock() {
+      Ok(filters) => Arc::new(Mutex::new(filters.add_timeline(&self.client, handle)?)),
+      _ => self.filters.clone(),
+    };
+    self.filters = filters;
+    self.save_filters();
+    Ok(())
+  }
+
+  /// Remove a Timeline Filter of user given by name
+  pub fn remove_timeline<T: ToString>(&mut self, handle: T) {
+    match self.filters.lock() {
+      Ok(mut filters) => {
+        filters.remove_timeline(handle);
+      }
+      _ => (),
+    }
+    self.save_filters();
   }
 }
 

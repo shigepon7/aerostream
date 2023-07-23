@@ -4,7 +4,8 @@ use std::io::stdout;
 use std::thread::sleep;
 use std::time::Duration;
 
-use aerostream::{Client, Commit};
+use aerostream::api::ComAtprotoSyncSubscribereposCommit;
+use aerostream::Client;
 use anyhow::Result;
 use chrono::{DateTime, Local};
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
@@ -31,8 +32,8 @@ struct Post {
   path: Option<String>,
 }
 
-impl From<&Commit> for Post {
-  fn from(value: &Commit) -> Self {
+impl From<&ComAtprotoSyncSubscribereposCommit> for Post {
+  fn from(value: &ComAtprotoSyncSubscribereposCommit) -> Self {
     Self {
       create_at: value.time.with_timezone(&Local),
       did: value.repo.clone(),
@@ -211,6 +212,13 @@ fn main() -> Result<()> {
   let mut terminal = Terminal::new(backend)?;
   let mut client = Client::default();
 
+  if let Ok(id) = std::env::var("BSKY_ID") {
+    if let Ok(pw) = std::env::var("BSKY_PW") {
+      client.login(&id, &pw)?;
+      client.add_timeline(&id)?;
+    }
+  }
+
   client.set_timeout(5);
   client.connect_ws()?;
 
@@ -229,22 +237,20 @@ fn main() -> Result<()> {
   loop {
     let mut updated = false;
     for (filter, event) in client.next_event_filtered_all()?.into_iter() {
-      if !event.is_empty() {
-        if let Some((posts, state)) = filters.get_mut(&filter) {
-          if let Some(commit) = event.as_commit() {
-            log::debug!("--- COMMIT {:?}", commit);
-            let mut post = Post::from(commit);
-            log::debug!("xxx POST {:?}", post);
-            if !post.is_empty() {
-              log::debug!("||| POST {:?}", post);
-              post.get_handle(&mut client);
-              posts.push_front(post);
-              posts.truncate(max_len);
-              if let Some(s) = state.selected() {
-                state.select(Some(s + 1));
-              }
-              updated = true;
+      if let Some((posts, state)) = filters.get_mut(&filter) {
+        if let Some(commit) = event.as_commit() {
+          log::debug!("--- COMMIT {:?}", commit);
+          let mut post = Post::from(commit);
+          log::debug!("xxx POST {:?}", post);
+          if !post.is_empty() {
+            log::debug!("||| POST {:?}", post);
+            post.get_handle(&mut client);
+            posts.push_front(post);
+            posts.truncate(max_len);
+            if let Some(s) = state.selected() {
+              state.select(Some(s + 1));
             }
+            updated = true;
           }
         }
       }
@@ -472,6 +478,32 @@ fn main() -> Result<()> {
             KeyCode::Backspace => {
               image_status = (None, None);
               updated = true;
+            }
+            KeyCode::Char('a') => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get(&filter_names[focus]) {
+                if let Some(s) = state.selected() {
+                  if let Some(p) = posts.get(s) {
+                    if let Some(handle) = &p.handle {
+                      client.add_timeline(handle)?;
+                    }
+                  }
+                }
+              }
+            }
+            KeyCode::Char('d') => {
+              let mut filter_names = filters.keys().cloned().collect::<Vec<_>>();
+              filter_names.sort();
+              if let Some((posts, state)) = filters.get(&filter_names[focus]) {
+                if let Some(s) = state.selected() {
+                  if let Some(p) = posts.get(s) {
+                    if let Some(handle) = &p.handle {
+                      client.remove_timeline(handle);
+                    }
+                  }
+                }
+              }
             }
             _ => (),
           },

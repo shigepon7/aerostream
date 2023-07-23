@@ -41,7 +41,7 @@ use std::collections::HashSet;
 use anyhow::{bail, Result};
 use serde::{Deserialize, Serialize};
 
-use crate::{event::FeedPost, Client, Commit, Event, Handle, Payload};
+use crate::{api::*, Client, Event};
 
 /// Filter by repository (DID or handle) to which you are subscribed
 #[derive(Debug, Clone, Deserialize, Serialize, Default)]
@@ -130,7 +130,7 @@ pub struct Keywords {
 
 impl Keywords {
   /// Returns whether the specified string is included in the Event
-  pub fn includes(&self, posts: &[FeedPost]) -> bool {
+  pub fn includes(&self, posts: &[AppBskyFeedPost]) -> bool {
     let Some(includes) = &self.includes else {
       return false;
     };
@@ -140,7 +140,7 @@ impl Keywords {
   }
 
   /// Returns whether the specified string is included in the Event
-  pub fn excludes(&self, posts: &[FeedPost]) -> bool {
+  pub fn excludes(&self, posts: &[AppBskyFeedPost]) -> bool {
     let Some(excludes) = &self.excludes else {
       return false;
     };
@@ -159,7 +159,7 @@ pub struct Langs {
 
 impl Langs {
   /// Returns whether the specified language is included in the Event
-  pub fn includes(&self, posts: &[FeedPost]) -> bool {
+  pub fn includes(&self, posts: &[AppBskyFeedPost]) -> bool {
     let Some(includes) = &self.includes else {
       return false;
     };
@@ -171,7 +171,7 @@ impl Langs {
   }
 
   /// Returns whether the specified string is excluded in the Event
-  pub fn excludes(&self, posts: &[FeedPost]) -> bool {
+  pub fn excludes(&self, posts: &[AppBskyFeedPost]) -> bool {
     let Some(excludes) = &self.excludes else {
       return false;
     };
@@ -239,14 +239,14 @@ impl Filter {
     log::debug!("{:?}", self);
   }
 
-  fn is_follows_match(&self, commit: &Commit) -> bool {
+  fn is_follows_match(&self, commit: &ComAtprotoSyncSubscribereposCommit) -> bool {
     match &self.subscribes {
       Some(f) => f.is_match(&commit.repo),
       None => false,
     }
   }
 
-  fn is_handle_match(&self, handle: &Handle) -> bool {
+  fn is_handle_match(&self, handle: &ComAtprotoSyncSubscribereposHandle) -> bool {
     match &self.subscribes {
       Some(f) => f.is_match(&handle.did),
       None => false,
@@ -259,7 +259,7 @@ impl Filter {
       return true;
     }
     match &event.payload {
-      Payload::Commit(c) => {
+      ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposCommit(c) => {
         let posts = c
           .get_post()
           .into_iter()
@@ -292,7 +292,9 @@ impl Filter {
           }
         }
       }
-      Payload::Handle(h) => self.is_handle_match(h),
+      ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposHandle(h) => {
+        self.is_handle_match(h)
+      }
       _ => true,
     }
   }
@@ -373,6 +375,42 @@ impl Filters {
     for filter in self.filters.iter_mut() {
       filter.init(client);
     }
+  }
+
+  /// Add user's timeline as a filter
+  pub fn add_timeline<T: ToString>(&self, client: &crate::api::Client, handle: T) -> Result<Self> {
+    let follows = client.app_bsky_graph_getfollows(&handle.to_string(), None, None)?;
+    let mut filters = self
+      .filters
+      .clone()
+      .into_iter()
+      .filter(|f| f.name != handle.to_string())
+      .collect::<Vec<_>>();
+    filters.push(Filter {
+      name: handle.to_string(),
+      subscribes: Some(Subscribes {
+        dids: Some(
+          follows
+            .follows
+            .iter()
+            .map(|f| f.did.clone())
+            .collect::<Vec<_>>(),
+        ),
+        handles: None,
+      }),
+      ..Default::default()
+    });
+    Ok(Self { filters })
+  }
+
+  /// Remove user's timeline as a filter
+  pub fn remove_timeline<T: ToString>(&mut self, handle: T) {
+    self.filters = self
+      .filters
+      .clone()
+      .into_iter()
+      .filter(|f| f.name != handle.to_string())
+      .collect::<Vec<_>>();
   }
 
   /// Returns all included filters

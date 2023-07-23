@@ -62,7 +62,6 @@
 //! use chrono::Local;
 //!
 //! fn main() -> Result<()> {
-//!   env_logger::init();
 //!   let mut client = Client::default();
 //!   client.set_timeout(5);
 //!   client.connect_ws()?;
@@ -97,12 +96,11 @@
 //! }
 //! ```
 
+pub mod api;
 pub mod client;
 pub mod event;
 pub mod filter;
 
 pub use client::{Client, Repo};
-pub use event::{
-  Blob, Blocks, Commit, Event, FeedPost, Handle, Header, Info, Migrate, Payload, RepoOp, Tombstone,
-};
+pub use event::{Blocks, Event, Header};
 pub use filter::{Filter, Filters, Keywords, Subscribes};
