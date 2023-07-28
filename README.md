@@ -7,7 +7,7 @@ It can be used as a library or as a command line tool.
 ## To use as a command line tool
 
 ```shell
-cargo install aerostream
+cargo install aerostream -F terminal
 aerostream
 ```
 

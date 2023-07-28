@@ -91,7 +91,7 @@ fn receiver_thread(
     log::info!("websocket connected");
     loop {
       log::debug!("WAIT WEBSOCKET MESSAGE");
-      match ws.read_message() {
+      match ws.read() {
         Ok(Message::Binary(b)) => {
           log::debug!("RECEIVED BINARY MESSAGE");
           let event = match Event::try_from(b.as_slice()) {

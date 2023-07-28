@@ -4,28 +4,32 @@ edition = "2021"
 license = "Apache-2.0"
 name = "aerostream"
 repository = "https://github.com/shigepon7/aerostream"
-version = "0.6.2"
+version = "0.6.3"
 
 [[bin]]
 name = "aerostream"
+required-features = ["terminal"]
+
+[features]
+terminal = ["crossterm", "fern", "image", "textwrap", "tui", "tui-image-rgba-updated", "webbrowser"]
 
 [dependencies]
-anyhow = "1.0.71"
+anyhow = "1.0.72"
 chrono = {version = "0.4.26", features = ["serde"]}
-crossterm = "0.26.1"
-fern = "0.6.2"
-image = "0.24.6"
+crossterm = {version = "0.26.1", optional = true}
+fern = {version = "0.6.2", optional = true}
+image = {version = "0.24.6", optional = true}
 leb128 = "0.2.5"
 libipld = {version = "0.16.0", features = ["serde-codec"]}
 log = "0.4.19"
-serde = {version = "1.0.164", features = ["derive"]}
-serde_json = "1.0.99"
+serde = {version = "1.0.177", features = ["derive"]}
+serde_json = "1.0.104"
 serde_with = "3.1.0"
-serde_yaml = "0.9.22"
-textwrap = "0.16.0"
-tui = "0.18.0"
-tui-image-rgba-updated = "0.2.2"
-tungstenite = {version = "0.19.0", features = ["rustls-tls-webpki-roots"]}
+serde_yaml = "0.9.25"
+textwrap = {version = "0.16.0", optional = true}
+tui = {version = "0.18.0", optional = true}
+tui-image-rgba-updated = {version = "0.2.2", optional = true}
+tungstenite = {version = "0.20.0", features = ["rustls-tls-webpki-roots"]}
 ureq = {version = "2.7.1", features = ["json"]}
 url = "2.4.0"
-webbrowser = "0.8.10"
+webbrowser = {version = "0.8.10", optional = true}

@@ -7,7 +7,7 @@
 //! ## To use as a command line tool.
 //!
 //! ```shell
-//! cargo install aerostream
+//! cargo install aerostream -F terminal
 //! aerostream
 //! ```
 //!
@@ -96,6 +96,7 @@
 //! }
 //! ```
 
+/// Atproto API from lexicions
 pub mod api;
 pub mod client;
 pub mod event;
