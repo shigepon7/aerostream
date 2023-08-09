@@ -553,6 +553,7 @@ pub struct ComAtprotoAdminDefsRepoview {
   pub email: Option<String>,
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites_disabled: Option<bool>,
+  pub invite_note: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -570,6 +571,7 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
   pub invites_disabled: Option<bool>,
+  pub invite_note: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -670,6 +672,20 @@ pub struct ComAtprotoLabelDefsLabel {
   pub cts: DateTime<Utc>,
   pub cid: Option<CidString>,
   pub neg: Option<bool>,
+}
+
+/// Metadata tags on an atproto record, published by the author within the record.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoLabelDefsSelflabels {
+  pub values: Vec<ComAtprotoLabelDefsSelflabel>,
+}
+
+/// Metadata tag on an atproto record, published by the author within the record. Note -- schemas should use #selfLabels, not #selfLabel.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoLabelDefsSelflabel {
+  pub val: String,
 }
 
 #[skip_serializing_none]
@@ -854,6 +870,7 @@ pub struct AppBskyActorProfile {
   pub description: Option<String>,
   pub avatar: Option<Blob>,
   pub banner: Option<Blob>,
+  pub labels: Option<AppBskyActorProfileMainLabels>,
 }
 
 /// A declaration of the existence of a feed generator
@@ -868,6 +885,7 @@ pub struct AppBskyFeedGenerator {
   pub description: Option<String>,
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<Blob>,
+  pub labels: Option<AppBskyFeedGeneratorMainLabels>,
 }
 
 #[skip_serializing_none]
@@ -889,6 +907,7 @@ pub struct AppBskyFeedPost {
   pub reply: Option<AppBskyFeedPostReplyref>,
   pub embed: Option<AppBskyFeedPostMainEmbed>,
   pub langs: Option<Vec<String>>,
+  pub labels: Option<AppBskyFeedPostMainLabels>,
 }
 
 #[skip_serializing_none]
@@ -928,6 +947,7 @@ pub struct AppBskyGraphList {
   pub description: Option<String>,
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<Blob>,
+  pub labels: Option<AppBskyGraphListMainLabels>,
 }
 
 /// An item under a declared list of actors
@@ -1626,6 +1646,19 @@ impl Default for AppBskyActorDefsPreferencesItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum AppBskyActorProfileMainLabels {
+  #[serde(rename = "com.atproto.label.defs#selfLabels")]
+  ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+}
+
+impl Default for AppBskyActorProfileMainLabels {
+  fn default() -> Self {
+    Self::ComAtprotoLabelDefsSelflabels(Box::new(ComAtprotoLabelDefsSelflabels::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum AppBskyEmbedRecordViewRecord {
   #[serde(rename = "app.bsky.embed.record#viewRecord")]
   AppBskyEmbedRecordViewrecord(Box<AppBskyEmbedRecordViewrecord>),
@@ -1811,6 +1844,19 @@ impl Default for AppBskyFeedDefsSkeletonfeedpostReason {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum AppBskyFeedGeneratorMainLabels {
+  #[serde(rename = "com.atproto.label.defs#selfLabels")]
+  ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+}
+
+impl Default for AppBskyFeedGeneratorMainLabels {
+  fn default() -> Self {
+    Self::ComAtprotoLabelDefsSelflabels(Box::new(ComAtprotoLabelDefsSelflabels::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum AppBskyFeedGetpostthreadMainOutputThread {
   #[serde(rename = "app.bsky.feed.defs#threadViewPost")]
   AppBskyFeedDefsThreadviewpost(Box<AppBskyFeedDefsThreadviewpost>),
@@ -1842,6 +1888,32 @@ pub enum AppBskyFeedPostMainEmbed {
 impl Default for AppBskyFeedPostMainEmbed {
   fn default() -> Self {
     Self::AppBskyEmbedImages(Box::new(AppBskyEmbedImages::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum AppBskyFeedPostMainLabels {
+  #[serde(rename = "com.atproto.label.defs#selfLabels")]
+  ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+}
+
+impl Default for AppBskyFeedPostMainLabels {
+  fn default() -> Self {
+    Self::ComAtprotoLabelDefsSelflabels(Box::new(ComAtprotoLabelDefsSelflabels::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum AppBskyGraphListMainLabels {
+  #[serde(rename = "com.atproto.label.defs#selfLabels")]
+  ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+}
+
+impl Default for AppBskyGraphListMainLabels {
+  fn default() -> Self {
+    Self::ComAtprotoLabelDefsSelflabels(Box::new(ComAtprotoLabelDefsSelflabels::default()))
   }
 }
 
@@ -2280,6 +2352,7 @@ impl Client {
     actor: &str,
     limit: Option<i64>,
     cursor: Option<&str>,
+    filter: Option<&str>,
   ) -> Result<AppBskyFeedGetauthorfeed> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/app.bsky.feed.getAuthorFeed",
@@ -2301,6 +2374,10 @@ impl Client {
 
     if cursor.is_some() {
       q.push(("cursor", cursor.unwrap_or_default()));
+    };
+
+    if filter.is_some() {
+      q.push(("filter", filter.unwrap_or_default()));
     }
 
     Ok(req.query_pairs(q).call()?.into_json()?)
@@ -3882,9 +3959,34 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Allow a labeler to apply labels directly.
+
+  pub fn app_bsky_unspecced_applylabels(
+    &self,
+    labels: &[&ComAtprotoLabelDefsLabel],
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/app.bsky.unspecced.applyLabels",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("labels"), json!(labels));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
   /// Disable an account from receiving new invite codes, but does not invalidate existing codes
 
-  pub fn com_atproto_admin_disableaccountinvites(&self, account: &str) -> Result<ureq::Response> {
+  pub fn com_atproto_admin_disableaccountinvites(
+    &self,
+    account: &str,
+    note: Option<&str>,
+  ) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.admin.disableAccountInvites",
       self.host
@@ -3896,6 +3998,10 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("account"), json!(account));
+
+    if let Some(v) = &note {
+      input.insert(String::from("note"), json!(v));
+    }
 
     Ok(req.send_json(json!(input))?)
   }
@@ -3930,7 +4036,11 @@ impl Client {
 
   /// Re-enable an accounts ability to receive invite codes
 
-  pub fn com_atproto_admin_enableaccountinvites(&self, account: &str) -> Result<ureq::Response> {
+  pub fn com_atproto_admin_enableaccountinvites(
+    &self,
+    account: &str,
+    note: Option<&str>,
+  ) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.admin.enableAccountInvites",
       self.host
@@ -3942,6 +4052,10 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("account"), json!(account));
+
+    if let Some(v) = &note {
+      input.insert(String::from("note"), json!(v));
+    }
 
     Ok(req.send_json(json!(input))?)
   }
