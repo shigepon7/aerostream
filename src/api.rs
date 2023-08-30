@@ -186,12 +186,16 @@ pub struct AppBskyEmbedRecordViewrecord {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecordViewnotfound {
   pub uri: String,
+  #[serde(rename = "notFound")]
+  pub not_found: bool,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecordViewblocked {
   pub uri: String,
+  pub blocked: bool,
+  pub author: AppBskyFeedDefsBlockedauthor,
 }
 
 #[skip_serializing_none]
@@ -276,6 +280,14 @@ pub struct AppBskyFeedDefsNotfoundpost {
 pub struct AppBskyFeedDefsBlockedpost {
   pub uri: String,
   pub blocked: bool,
+  pub author: AppBskyFeedDefsBlockedauthor,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsBlockedauthor {
+  pub did: String,
+  pub viewer: Option<AppBskyActorDefsViewerstate>,
 }
 
 #[skip_serializing_none]
@@ -465,6 +477,7 @@ pub struct ComAtprotoAdminDefsActionview {
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedReportIds")]
   pub resolved_report_ids: Vec<i64>,
+  pub duration_in_hours: Option<i64>,
   pub create_label_vals: Option<Vec<String>>,
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
@@ -485,6 +498,7 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedReports")]
   pub resolved_reports: Vec<ComAtprotoAdminDefsReportview>,
+  pub duration_in_hours: Option<i64>,
   pub create_label_vals: Option<Vec<String>>,
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
@@ -495,6 +509,7 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
 pub struct ComAtprotoAdminDefsActionviewcurrent {
   pub id: i64,
   pub action: ComAtprotoAdminDefsActiontype,
+  pub duration_in_hours: Option<i64>,
 }
 
 #[skip_serializing_none]
@@ -814,11 +829,13 @@ pub struct ComAtprotoSyncSubscribereposCommit {
   pub too_big: bool,
   pub repo: String,
   pub commit: String,
-  pub prev: String,
+  pub rev: String,
+  pub since: String,
   pub blocks: Vec<u8>,
   pub ops: Vec<ComAtprotoSyncSubscribereposRepoop>,
   pub blobs: Vec<String>,
   pub time: DateTime<Utc>,
+  pub prev: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -855,6 +872,7 @@ pub struct ComAtprotoSyncSubscribereposInfo {
   pub message: Option<String>,
 }
 
+/// A repo operation, ie a write of a single record. For creates and updates, cid is the record&#39;s CID as of this operation. For deletes, it&#39;s null.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposRepoop {
@@ -998,7 +1016,7 @@ impl Default for Record {
   }
 }
 
-fn ipld_to_string(ipld: &Ipld) -> String {
+pub fn ipld_to_string(ipld: &Ipld) -> String {
   match ipld {
     Ipld::Bool(b) => b.to_string(),
     Ipld::Bytes(b) => format!(
@@ -1026,7 +1044,12 @@ fn ipld_to_string(ipld: &Ipld) -> String {
         .join(",")
     ),
     Ipld::Null => String::from("null"),
-    Ipld::String(s) => format!("\"{}\"", s),
+    Ipld::String(s) => format!(
+      "\"{}\"",
+      s.replace(r"\", r"\\")
+        .replace('"', "\\\"")
+        .replace("\n", r"\n")
+    ),
   }
 }
 
@@ -1100,6 +1123,20 @@ impl Record {
       _ => None,
     }
   }
+
+  pub fn get_created_at(&self) -> Option<DateTime<Utc>> {
+    match self {
+      Self::AppBskyActorProfile(_) => None,
+      Self::AppBskyFeedGenerator(v) => Some(v.created_at),
+      Self::AppBskyFeedLike(v) => Some(v.created_at),
+      Self::AppBskyFeedPost(v) => Some(v.created_at),
+      Self::AppBskyFeedRepost(v) => Some(v.created_at),
+      Self::AppBskyGraphBlock(v) => Some(v.created_at),
+      Self::AppBskyGraphFollow(v) => Some(v.created_at),
+      Self::AppBskyGraphList(v) => Some(v.created_at),
+      Self::AppBskyGraphListitem(v) => Some(v.created_at),
+    }
+  }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1125,10 +1162,10 @@ impl TryFrom<&Ipld> for Node {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Commit {
   pub did: String,
-  version: i64,
-  prev: Option<Link>,
-  data: Link,
-  sig: Vec<u8>,
+  pub version: i64,
+  pub prev: Option<Link>,
+  pub data: Link,
+  pub sig: Vec<u8>,
 }
 
 impl TryFrom<&Ipld> for Commit {
@@ -1150,6 +1187,36 @@ impl CidString {
 impl Display for CidString {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     f.write_str(&self.0)
+  }
+}
+
+#[derive(Debug, Clone)]
+pub enum Block {
+  Commit(Commit),
+  Node(Node),
+  Record(Record),
+}
+
+impl Block {
+  pub fn as_commit(&self) -> Option<&Commit> {
+    match self {
+      Self::Commit(c) => Some(c),
+      _ => None,
+    }
+  }
+
+  pub fn as_node(&self) -> Option<&Node> {
+    match self {
+      Self::Node(n) => Some(n),
+      _ => None,
+    }
+  }
+
+  pub fn as_record(&self) -> Option<&Record> {
+    match self {
+      Self::Record(r) => Some(r),
+      _ => None,
+    }
   }
 }
 
@@ -1222,6 +1289,26 @@ impl Blocks {
 
   pub fn get(&self, cid: &Cid) -> Option<Ipld> {
     self.data.get(cid).cloned()
+  }
+
+  pub fn get_blocks(&self) -> HashMap<Cid, Block> {
+    self
+      .data
+      .iter()
+      .filter_map(|(cid, i)| match Commit::try_from(i) {
+        Ok(c) => Some((*cid, Block::Commit(c))),
+        Err(_) => match Node::try_from(i) {
+          Ok(n) => Some((*cid, Block::Node(n))),
+          Err(_) => match Record::try_from(i) {
+            Ok(r) => Some((*cid, Block::Record(r))),
+            Err(_) => {
+              log::warn!("unknown IPLD {}", ipld_to_string(i));
+              None
+            }
+          },
+        },
+      })
+      .collect()
   }
 }
 
@@ -1304,6 +1391,12 @@ pub struct AppBskyFeedDescribefeedgenerator {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetactorfeeds {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
+  pub cursor: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyFeedGetactorlikes {
+  pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
@@ -1531,18 +1624,20 @@ pub struct ComAtprotoServerListapppasswords {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComAtprotoSyncGetcommitpath {
-  pub commits: Vec<CidString>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncGethead {
   pub root: CidString,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoSyncGetlatestcommit {
+  pub cid: CidString,
+  pub rev: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncListblobs {
   pub cids: Vec<CidString>,
+  pub cursor: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2322,6 +2417,39 @@ impl Client {
   ) -> Result<AppBskyFeedGetactorfeeds> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/app.bsky.feed.getActorFeeds",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut q = Vec::new();
+
+    q.push(("actor", actor));
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(q).call()?.into_json()?)
+  }
+
+  /// A view of the posts liked by an actor.
+
+  pub fn app_bsky_feed_getactorlikes(
+    &self,
+    actor: &str,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyFeedGetactorlikes> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.feed.getActorLikes",
       self.host
     ));
     if let Some(jwt) = &self.jwt {
@@ -3609,13 +3737,9 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// Gets the repo state.
+  /// DEPRECATED - please use com.atproto.sync.getRepo instead
 
-  pub fn com_atproto_sync_getcheckout(
-    &self,
-    did: &str,
-    commit: Option<&CidString>,
-  ) -> Result<Blocks> {
+  pub fn com_atproto_sync_getcheckout(&self, did: &str) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/com.atproto.sync.getCheckout",
       self.host
@@ -3628,12 +3752,6 @@ impl Client {
 
     q.push(("did", did));
 
-    let commit_value = serde_json::to_string(&commit)?;
-
-    if commit.is_some() {
-      q.push(("commit", commit_value.as_str()));
-    }
-
     let mut ret = Vec::new();
     req
       .query_pairs(q)
@@ -3644,16 +3762,11 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// Gets the path of repo commits
+  /// DEPRECATED - please use com.atproto.sync.getLatestCommit instead
 
-  pub fn com_atproto_sync_getcommitpath(
-    &self,
-    did: &str,
-    latest: Option<&CidString>,
-    earliest: Option<&CidString>,
-  ) -> Result<ComAtprotoSyncGetcommitpath> {
+  pub fn com_atproto_sync_gethead(&self, did: &str) -> Result<ComAtprotoSyncGethead> {
     let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.sync.getCommitPath",
+      "https://{}/xrpc/com.atproto.sync.getHead",
       self.host
     ));
     if let Some(jwt) = &self.jwt {
@@ -3664,26 +3777,17 @@ impl Client {
 
     q.push(("did", did));
 
-    let latest_value = serde_json::to_string(&latest)?;
-
-    if latest.is_some() {
-      q.push(("latest", latest_value.as_str()));
-    }
-
-    let earliest_value = serde_json::to_string(&earliest)?;
-
-    if earliest.is_some() {
-      q.push(("earliest", earliest_value.as_str()));
-    }
-
     Ok(req.query_pairs(q).call()?.into_json()?)
   }
 
-  /// Gets the current HEAD CID of a repo.
+  /// Gets the current commit CID &amp; revision of the repo.
 
-  pub fn com_atproto_sync_gethead(&self, did: &str) -> Result<ComAtprotoSyncGethead> {
+  pub fn com_atproto_sync_getlatestcommit(
+    &self,
+    did: &str,
+  ) -> Result<ComAtprotoSyncGetlatestcommit> {
     let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.sync.getHead",
+      "https://{}/xrpc/com.atproto.sync.getLatestCommit",
       self.host
     ));
     if let Some(jwt) = &self.jwt {
@@ -3738,14 +3842,9 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// Gets the repo state.
+  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
 
-  pub fn com_atproto_sync_getrepo(
-    &self,
-    did: &str,
-    earliest: Option<&CidString>,
-    latest: Option<&CidString>,
-  ) -> Result<Blocks> {
+  pub fn com_atproto_sync_getrepo(&self, did: &str, since: Option<&CidString>) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/com.atproto.sync.getRepo",
       self.host
@@ -3758,16 +3857,10 @@ impl Client {
 
     q.push(("did", did));
 
-    let earliest_value = serde_json::to_string(&earliest)?;
+    let since_value = serde_json::to_string(&since)?;
 
-    if earliest.is_some() {
-      q.push(("earliest", earliest_value.as_str()));
-    }
-
-    let latest_value = serde_json::to_string(&latest)?;
-
-    if latest.is_some() {
-      q.push(("latest", latest_value.as_str()));
+    if since.is_some() {
+      q.push(("since", since_value.as_str()));
     }
 
     let mut ret = Vec::new();
@@ -3780,13 +3873,14 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// List blob cids for some range of commits
+  /// List blob cids since some revision
 
   pub fn com_atproto_sync_listblobs(
     &self,
     did: &str,
-    latest: Option<&CidString>,
-    earliest: Option<&CidString>,
+    since: Option<&CidString>,
+    limit: Option<i64>,
+    cursor: Option<&str>,
   ) -> Result<ComAtprotoSyncListblobs> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/com.atproto.sync.listBlobs",
@@ -3800,16 +3894,20 @@ impl Client {
 
     q.push(("did", did));
 
-    let latest_value = serde_json::to_string(&latest)?;
+    let since_value = serde_json::to_string(&since)?;
 
-    if latest.is_some() {
-      q.push(("latest", latest_value.as_str()));
+    if since.is_some() {
+      q.push(("since", since_value.as_str()));
     }
 
-    let earliest_value = serde_json::to_string(&earliest)?;
+    let limit_value = serde_json::to_string(&limit)?;
 
-    if earliest.is_some() {
-      q.push(("earliest", earliest_value.as_str()));
+    if limit.is_some() {
+      q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      q.push(("cursor", cursor.unwrap_or_default()));
     }
 
     Ok(req.query_pairs(q).call()?.into_json()?)
@@ -3938,6 +4036,36 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Register for push notifications with a service
+
+  pub fn app_bsky_notification_registerpush(
+    &self,
+    service_did: &str,
+    token: &str,
+    platform: &str,
+    app_id: &str,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/app.bsky.notification.registerPush",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("service_did"), json!(service_did));
+
+    input.insert(String::from("token"), json!(token));
+
+    input.insert(String::from("platform"), json!(platform));
+
+    input.insert(String::from("app_id"), json!(app_id));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
   /// Notify server that the user has seen notifications.
 
   pub fn app_bsky_notification_updateseen(
@@ -4060,32 +4188,6 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Administrative action to rebase an account&#39;s repo
-
-  pub fn com_atproto_admin_rebaserepo(
-    &self,
-    repo: &str,
-    swap_commit: Option<&CidString>,
-  ) -> Result<ureq::Response> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.admin.rebaseRepo",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("repo"), json!(repo));
-
-    if let Some(v) = &swap_commit {
-      input.insert(String::from("swap_commit"), json!(v));
-    }
-
-    Ok(req.send_json(json!(input))?)
-  }
-
   /// Resolve moderation reports by an action.
 
   pub fn com_atproto_admin_resolvemoderationreports(
@@ -4180,6 +4282,7 @@ impl Client {
     subject_blob_cids: Option<&[&CidString]>,
     create_label_vals: Option<&[&str]>,
     negate_label_vals: Option<&[&str]>,
+    duration_in_hours: Option<i64>,
   ) -> Result<ComAtprotoAdminDefsActionview> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.admin.takeModerationAction",
@@ -4209,6 +4312,10 @@ impl Client {
 
     if let Some(v) = &negate_label_vals {
       input.insert(String::from("negate_label_vals"), json!(v));
+    }
+
+    if let Some(v) = &duration_in_hours {
+      input.insert(String::from("duration_in_hours"), json!(v));
     }
 
     Ok(req.send_json(json!(input))?.into_json()?)
@@ -4465,32 +4572,6 @@ impl Client {
     }
 
     Ok(req.send_json(json!(input))?.into_json()?)
-  }
-
-  /// Simple rebase of repo that deletes history
-
-  pub fn com_atproto_repo_rebaserepo(
-    &self,
-    repo: &str,
-    swap_commit: Option<&CidString>,
-  ) -> Result<ureq::Response> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.repo.rebaseRepo",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("repo"), json!(repo));
-
-    if let Some(v) = &swap_commit {
-      input.insert(String::from("swap_commit"), json!(v));
-    }
-
-    Ok(req.send_json(json!(input))?)
   }
 
   /// Upload a new blob to be added to repo in a later request.
@@ -4815,6 +4896,24 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("hostname"), json!(hostname));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Upgrade a repo to v3
+
+  pub fn com_atproto_temp_upgraderepoversion(&self, did: &str) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.temp.upgradeRepoVersion",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("did"), json!(did));
 
     Ok(req.send_json(json!(input))?)
   }

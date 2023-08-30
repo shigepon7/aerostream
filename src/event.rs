@@ -154,11 +154,13 @@ struct CommitInner {
   pub tooBig: bool,
   pub repo: String,
   pub commit: Link<Cid>,
-  pub prev: Option<Link<Cid>>,
+  pub rev: String,
+  pub since: String,
   pub blocks: Ipld,
   pub ops: Vec<RepoOp>,
   pub blobs: Vec<Link<Cid>>,
   pub time: String,
+  pub prev: Option<Link<Cid>>,
 }
 
 impl From<CommitInner> for ComAtprotoSyncSubscribereposCommit {
@@ -169,7 +171,8 @@ impl From<CommitInner> for ComAtprotoSyncSubscribereposCommit {
       too_big: value.tooBig,
       repo: value.repo.clone(),
       commit: value.commit.to_string(),
-      prev: value.prev.map(|p| p.to_string()).unwrap_or_default(),
+      rev: value.rev.clone(),
+      since: value.since.clone(),
       blocks: match &value.blocks {
         Ipld::Bytes(b) => b.clone(),
         _ => Vec::new(),
@@ -194,6 +197,7 @@ impl From<CommitInner> for ComAtprotoSyncSubscribereposCommit {
         })
         .collect(),
       time: value.time.parse().unwrap_or_default(),
+      prev: value.prev.map(|p| p.to_string()),
     }
   }
 }
