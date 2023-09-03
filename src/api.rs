@@ -1460,6 +1460,12 @@ pub struct AppBskyFeedGetrepostedby {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyFeedGetsuggestedfeeds {
+  pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
+  pub cursor: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGettimeline {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
@@ -2732,6 +2738,36 @@ impl Client {
     if cid.is_some() {
       q.push(("cid", cid_value.as_str()));
     }
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(q).call()?.into_json()?)
+  }
+
+  /// Get a list of suggested feeds for the viewer.
+
+  pub fn app_bsky_feed_getsuggestedfeeds(
+    &self,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyFeedGetsuggestedfeeds> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.feed.getSuggestedFeeds",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
@@ -4902,7 +4938,11 @@ impl Client {
 
   /// Upgrade a repo to v3
 
-  pub fn com_atproto_temp_upgraderepoversion(&self, did: &str) -> Result<ureq::Response> {
+  pub fn com_atproto_temp_upgraderepoversion(
+    &self,
+    did: &str,
+    force: Option<bool>,
+  ) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.temp.upgradeRepoVersion",
       self.host
@@ -4914,6 +4954,10 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("did"), json!(did));
+
+    if let Some(v) = &force {
+      input.insert(String::from("force"), json!(v));
+    }
 
     Ok(req.send_json(json!(input))?)
   }
