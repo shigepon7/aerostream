@@ -11,17 +11,18 @@ use chrono::{DateTime, Local};
 use crossterm::event::{Event, KeyCode, KeyEventKind, KeyModifiers};
 use crossterm::execute;
 use crossterm::terminal::{
-  disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen,
+  disable_raw_mode, enable_raw_mode, window_size, EnterAlternateScreen, LeaveAlternateScreen,
 };
-use image::{load_from_memory, RgbaImage};
+use image::{load_from_memory, DynamicImage};
+use ratatu_image::picker::{BackendType, Picker};
+use ratatu_image::FixedImage;
+use ratatui::backend::{Backend, CrosstermBackend};
+use ratatui::layout::{Constraint, Direction, Layout};
+use ratatui::style::{Color, Style};
+use ratatui::text::{Line, Span};
+use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
+use ratatui::{Frame, Terminal};
 use textwrap::wrap;
-use tui::backend::{Backend, CrosstermBackend};
-use tui::layout::{Constraint, Direction, Layout};
-use tui::style::{Color, Style};
-use tui::text::{Span, Spans};
-use tui::widgets::{Block, Borders, List, ListItem, ListState};
-use tui::{Frame, Terminal};
-use tui_image_rgba_updated::{ColorMode, Image};
 
 struct Post {
   create_at: DateTime<Local>,
@@ -79,16 +80,16 @@ impl Post {
     }
   }
 
-  fn to_spans(&self, width: u16) -> Vec<Spans> {
-    let mut ret: Vec<Spans> = Vec::new();
+  fn to_spans(&self, width: u16) -> Vec<Line> {
+    let mut ret: Vec<Line> = Vec::new();
     let name = self.get_name();
     if name.len() > width as usize - 8 {
-      ret.push(Spans::from(Span::styled(
+      ret.push(Line::from(Span::styled(
         format!("{} {}", self.create_at.format("%H:%M"), name),
         Style::default().fg(Color::White).bg(Color::Blue),
       )));
     } else {
-      ret.push(Spans::from(Span::styled(
+      ret.push(Line::from(Span::styled(
         format!(
           "{} {}{}",
           self.create_at.format("%H:%M"),
@@ -100,14 +101,11 @@ impl Post {
     }
     for text in self.text.iter() {
       for line in wrap(text, (width - 3) as usize).iter() {
-        ret.push(Spans::from(Span::styled(
-          line.to_string(),
-          Style::default(),
-        )));
+        ret.push(Line::from(Span::styled(line.to_string(), Style::default())));
       }
     }
     if !self.blobs.is_empty() {
-      ret.push(Spans::from(Span::styled(
+      ret.push(Line::from(Span::styled(
         "🖼️".repeat(self.blobs.len()),
         Style::default(),
       )));
@@ -120,14 +118,14 @@ fn ui<B: Backend>(
   f: &mut Frame<B>,
   filters: &mut HashMap<String, (VecDeque<Post>, ListState)>,
   focus: usize,
-  image_status: &mut (Option<String>, Option<RgbaImage>),
+  image_status: &mut (Option<String>, Option<DynamicImage>),
 ) {
   if let Some(img) = &image_status.0 {
     if let Ok(res) = ureq::get(&img).call() {
       let mut buf: Vec<u8> = Vec::new();
       if res.into_reader().read_to_end(&mut buf).is_ok() {
         if let Ok(img_data) = load_from_memory(buf.as_slice()) {
-          *image_status = (None, Some(img_data.into_rgba8()));
+          *image_status = (None, Some(img_data));
         }
       }
     }
@@ -140,15 +138,18 @@ fn ui<B: Backend>(
     } else {
       size.width = ((2 * f.size().height as u32) * img_data.width() / img_data.height()) as u16;
     };
+    let font_size = match window_size() {
+      Ok(wsize) => (wsize.width / wsize.columns, wsize.height / wsize.rows),
+      Err(_) => (5, 10),
+    };
+    let mut picker = Picker::new(font_size, BackendType::Halfblocks, None).unwrap();
     f.render_widget(
-      Image::with_img(img_data.clone())
-        .color_mode(ColorMode::Rgb)
-        .block(
-          Block::default()
-            .borders(Borders::ALL)
-            .border_style(Style::default().fg(Color::White))
-            .title("Image"),
-        ),
+      FixedImage::new(
+        picker
+          .new_static_fit(img_data.clone(), size, ratatu_image::Resize::Fit)
+          .unwrap()
+          .as_ref(),
+      ),
       size,
     );
     return;
