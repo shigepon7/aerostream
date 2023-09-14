@@ -102,6 +102,12 @@ pub struct AppBskyActorDefsSavedfeedspref {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsPersonaldetailspref {
+  pub birth_date: Option<DateTime<Utc>>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternal {
   pub external: AppBskyEmbedExternalExternal,
 }
@@ -141,6 +147,15 @@ pub struct AppBskyEmbedImages {
 pub struct AppBskyEmbedImagesImage {
   pub image: Blob,
   pub alt: String,
+  pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
+}
+
+/// width:height represents an aspect ratio. It may be approximate, and may not correspond to absolute dimensions in any given unit.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyEmbedImagesAspectratio {
+  pub width: i64,
+  pub height: i64,
 }
 
 #[skip_serializing_none]
@@ -155,6 +170,7 @@ pub struct AppBskyEmbedImagesViewimage {
   pub thumb: String,
   pub fullsize: String,
   pub alt: String,
+  pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
 }
 
 #[skip_serializing_none]
@@ -413,6 +429,7 @@ pub struct AppBskyGraphDefsListitemview {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphDefsListviewerstate {
   pub muted: Option<bool>,
+  pub blocked: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -968,6 +985,15 @@ pub struct AppBskyGraphList {
   pub labels: Option<AppBskyGraphListMainLabels>,
 }
 
+/// A block of an entire list of actors.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyGraphListblock {
+  pub subject: String,
+  #[serde(rename = "createdAt")]
+  pub created_at: DateTime<Utc>,
+}
+
 /// An item under a declared list of actors
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1005,6 +1031,9 @@ pub enum Record {
 
   #[serde(rename = "app.bsky.graph.list")]
   AppBskyGraphList(AppBskyGraphList),
+
+  #[serde(rename = "app.bsky.graph.listblock")]
+  AppBskyGraphListblock(AppBskyGraphListblock),
 
   #[serde(rename = "app.bsky.graph.listitem")]
   AppBskyGraphListitem(AppBskyGraphListitem),
@@ -1117,6 +1146,13 @@ impl Record {
     }
   }
 
+  pub fn as_app_bsky_graph_listblock(&self) -> Option<&AppBskyGraphListblock> {
+    match self {
+      Self::AppBskyGraphListblock(v) => Some(v),
+      _ => None,
+    }
+  }
+
   pub fn as_app_bsky_graph_listitem(&self) -> Option<&AppBskyGraphListitem> {
     match self {
       Self::AppBskyGraphListitem(v) => Some(v),
@@ -1134,6 +1170,7 @@ impl Record {
       Self::AppBskyGraphBlock(v) => Some(v.created_at),
       Self::AppBskyGraphFollow(v) => Some(v.created_at),
       Self::AppBskyGraphList(v) => Some(v.created_at),
+      Self::AppBskyGraphListblock(v) => Some(v.created_at),
       Self::AppBskyGraphListitem(v) => Some(v.created_at),
     }
   }
@@ -1499,6 +1536,12 @@ pub struct AppBskyGraphGetlist {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyGraphGetlistblocks {
+  pub lists: Vec<AppBskyGraphDefsListview>,
+  pub cursor: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetlistmutes {
   pub lists: Vec<AppBskyGraphDefsListview>,
   pub cursor: Option<String>,
@@ -1514,6 +1557,11 @@ pub struct AppBskyGraphGetlists {
 pub struct AppBskyGraphGetmutes {
   pub mutes: Vec<AppBskyActorDefsProfileview>,
   pub cursor: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyGraphGetsuggestedfollowsbyactor {
+  pub suggestions: Vec<AppBskyActorDefsProfileview>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1737,6 +1785,8 @@ pub enum AppBskyActorDefsPreferencesItem {
   AppBskyActorDefsContentlabelpref(Box<AppBskyActorDefsContentlabelpref>),
   #[serde(rename = "app.bsky.actor.defs#savedFeedsPref")]
   AppBskyActorDefsSavedfeedspref(Box<AppBskyActorDefsSavedfeedspref>),
+  #[serde(rename = "app.bsky.actor.defs#personalDetailsPref")]
+  AppBskyActorDefsPersonaldetailspref(Box<AppBskyActorDefsPersonaldetailspref>),
 }
 
 impl Default for AppBskyActorDefsPreferencesItem {
@@ -2946,6 +2996,36 @@ impl Client {
     Ok(req.query_pairs(q).call()?.into_json()?)
   }
 
+  /// Which lists is the requester&#39;s account blocking?
+
+  pub fn app_bsky_graph_getlistblocks(
+    &self,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyGraphGetlistblocks> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.graph.getListBlocks",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut q = Vec::new();
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(q).call()?.into_json()?)
+  }
+
   /// Which lists is the requester&#39;s account muting?
 
   pub fn app_bsky_graph_getlistmutes(
@@ -3035,6 +3115,27 @@ impl Client {
     if cursor.is_some() {
       q.push(("cursor", cursor.unwrap_or_default()));
     }
+
+    Ok(req.query_pairs(q).call()?.into_json()?)
+  }
+
+  /// Get suggested follows related to a given actor.
+
+  pub fn app_bsky_graph_getsuggestedfollowsbyactor(
+    &self,
+    actor: &str,
+  ) -> Result<AppBskyGraphGetsuggestedfollowsbyactor> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.graph.getSuggestedFollowsByActor",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut q = Vec::new();
+
+    q.push(("actor", actor));
 
     Ok(req.query_pairs(q).call()?.into_json()?)
   }
@@ -3880,7 +3981,7 @@ impl Client {
 
   /// Gets the did&#39;s repo, optionally catching up from a specific revision.
 
-  pub fn com_atproto_sync_getrepo(&self, did: &str, since: Option<&CidString>) -> Result<Blocks> {
+  pub fn com_atproto_sync_getrepo(&self, did: &str, since: Option<&str>) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/com.atproto.sync.getRepo",
       self.host
@@ -3893,10 +3994,8 @@ impl Client {
 
     q.push(("did", did));
 
-    let since_value = serde_json::to_string(&since)?;
-
     if since.is_some() {
-      q.push(("since", since_value.as_str()));
+      q.push(("since", since.unwrap_or_default()));
     }
 
     let mut ret = Vec::new();
@@ -3914,7 +4013,7 @@ impl Client {
   pub fn com_atproto_sync_listblobs(
     &self,
     did: &str,
-    since: Option<&CidString>,
+    since: Option<&str>,
     limit: Option<i64>,
     cursor: Option<&str>,
   ) -> Result<ComAtprotoSyncListblobs> {
@@ -3930,10 +4029,8 @@ impl Client {
 
     q.push(("did", did));
 
-    let since_value = serde_json::to_string(&since)?;
-
     if since.is_some() {
-      q.push(("since", since_value.as_str()));
+      q.push(("since", since.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
@@ -4932,32 +5029,6 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("hostname"), json!(hostname));
-
-    Ok(req.send_json(json!(input))?)
-  }
-
-  /// Upgrade a repo to v3
-
-  pub fn com_atproto_temp_upgraderepoversion(
-    &self,
-    did: &str,
-    force: Option<bool>,
-  ) -> Result<ureq::Response> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.temp.upgradeRepoVersion",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("did"), json!(did));
-
-    if let Some(v) = &force {
-      input.insert(String::from("force"), json!(v));
-    }
 
     Ok(req.send_json(json!(input))?)
   }

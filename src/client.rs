@@ -217,6 +217,7 @@ impl Client {
     let image = AppBskyEmbedImagesImage {
       alt: text.to_string(),
       image: blob.blob.clone(),
+      aspect_ratio: None,
     };
     let images = AppBskyEmbedImages {
       images: vec![image],

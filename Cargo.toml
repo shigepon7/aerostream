@@ -4,19 +4,18 @@ edition = "2021"
 license = "Apache-2.0"
 name = "aerostream"
 repository = "https://github.com/shigepon7/aerostream"
-version = "0.7.2"
+version = "0.7.3"
 
 [[bin]]
 name = "aerostream"
 required-features = ["terminal"]
 
 [features]
-default = ["terminal"]
 terminal = ["crossterm", "fern", "image", "textwrap", "ratatui", "ratatu-image", "webbrowser"]
 
 [dependencies]
 anyhow = "1.0.75"
-chrono = {version = "0.4.28", features = ["serde"]}
+chrono = {version = "0.4.30", features = ["serde"]}
 crossterm = {version = "0.27.0", optional = true}
 fern = {version = "0.6.2", optional = true}
 image = {version = "0.24.7", optional = true}
@@ -26,7 +25,7 @@ log = "0.4.20"
 ratatu-image = {version = "0.1.1", features = ["crossterm"], optional = true}
 ratatui = {version = "0.23.0", optional = true}
 serde = {version = "1.0.188", features = ["derive"]}
-serde_json = "1.0.105"
+serde_json = "1.0.107"
 serde_with = "3.3.0"
 serde_yaml = "0.9.25"
 textwrap = {version = "0.16.0", optional = true}
