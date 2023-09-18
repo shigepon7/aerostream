@@ -21,7 +21,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
 use ratatui::{Frame, Terminal};
 use ratatui_image::picker::{Picker, ProtocolType};
-use ratatui_image::FixedImage;
+use ratatui_image::{FixedImage, Resize};
 use textwrap::wrap;
 
 struct Post {
@@ -146,7 +146,7 @@ fn ui<B: Backend>(
     f.render_widget(
       FixedImage::new(
         picker
-          .new_static_fit(img_data.clone(), size, ratatu_image::Resize::Fit)
+          .new_static_fit(img_data.clone(), size, Resize::Fit)
           .unwrap()
           .as_ref(),
       ),
