@@ -353,18 +353,12 @@ pub struct Filters {
 impl Default for Filters {
   fn default() -> Self {
     Self {
-      filters: vec![
-        Filter {
-          name: String::from("All"),
-          subscribes: None,
-          keywords: None,
-          langs: None,
-        },
-        Filter {
-          name: String::from("Favorites"),
-          ..Default::default()
-        },
-      ],
+      filters: vec![Filter {
+        name: String::from("All"),
+        subscribes: None,
+        keywords: None,
+        langs: None,
+      }],
     }
   }
 }

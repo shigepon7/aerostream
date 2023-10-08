@@ -98,10 +98,16 @@
 
 /// Atproto API from lexicions
 pub mod api;
+pub mod aturi;
 pub mod client;
 pub mod event;
+pub mod feedgenerator;
+pub mod feedpost;
 pub mod filter;
 
+pub use aturi::AtUri;
 pub use client::{Client, Repo};
 pub use event::{Blocks, Event, Header};
+pub use feedgenerator::{Algorithm, FeedGenerator, Subscription};
+pub use feedpost::{Cursor, FeedPost, FeedPosts};
 pub use filter::{Filter, Filters, Keywords, Subscribes};

@@ -18,6 +18,7 @@ use crate::{Event, Filters};
 /// Client to use Bluesky server
 pub struct Client {
   pub client: crate::api::Client,
+  pub refresh_jwt: Option<String>,
   repo: Option<String>,
   repo_store: Arc<Mutex<HashMap<String, ComAtprotoRepoDescriberepo>>>,
   handle_store: Arc<Mutex<HashMap<String, String>>>,
@@ -30,8 +31,11 @@ pub struct Client {
 
 impl Clone for Client {
   fn clone(&self) -> Self {
+    let mut client = crate::api::Client::new(self.client.get_host(), self.client.get_proxy());
+    client.set_jwt(self.client.get_jwt());
     Self {
-      client: crate::api::Client::new(self.client.get_host(), self.client.get_proxy()),
+      client,
+      refresh_jwt: None,
       repo: None,
       repo_store: Arc::clone(&self.repo_store),
       handle_store: Arc::clone(&self.handle_store),
@@ -51,6 +55,7 @@ impl Default for Client {
       .or_else(|| std::env::var("https_proxy").ok());
     let mut client = Self {
       client: crate::api::Client::new("bsky.social", proxy),
+      refresh_jwt: None,
       repo: None,
       repo_store: Arc::new(Mutex::new(HashMap::new())),
       handle_store: Arc::new(Mutex::new(HashMap::new())),
@@ -173,6 +178,7 @@ impl Client {
     let session = self
       .client
       .com_atproto_server_createsession(&id, &pw.to_string())?;
+    self.refresh_jwt = Some(session.refresh_jwt);
     self.client.set_jwt(Some(session.access_jwt));
     self.repo = self
       .client
@@ -217,10 +223,11 @@ impl Client {
     let image = AppBskyEmbedImagesImage {
       alt: text.to_string(),
       image: blob.blob.clone(),
-      aspect_ratio: None,
+      ..Default::default()
     };
     let images = AppBskyEmbedImages {
       images: vec![image],
+      ..Default::default()
     };
     let embed = Some(AppBskyFeedPostMainEmbed::AppBskyEmbedImages(Box::new(
       images,

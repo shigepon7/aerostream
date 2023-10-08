@@ -10,7 +10,7 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use libipld::{cbor::DagCborCodec, prelude::Codec, Cid, Ipld};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 use serde_with::skip_serializing_none;
 use tungstenite::{stream::MaybeTlsStream, WebSocket};
 use ureq::{Agent, AgentBuilder, Proxy};
@@ -37,6 +37,9 @@ pub struct AppBskyActorDefsProfileviewbasic {
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -50,6 +53,9 @@ pub struct AppBskyActorDefsProfileview {
   pub indexed_at: Option<DateTime<Utc>>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -67,6 +73,9 @@ pub struct AppBskyActorDefsProfileviewdetailed {
   pub indexed_at: Option<DateTime<Utc>>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -78,12 +87,18 @@ pub struct AppBskyActorDefsViewerstate {
   pub blocking: Option<String>,
   pub following: Option<String>,
   pub followed_by: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsAdultcontentpref {
   pub enabled: bool,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -91,6 +106,9 @@ pub struct AppBskyActorDefsAdultcontentpref {
 pub struct AppBskyActorDefsContentlabelpref {
   pub label: String,
   pub visibility: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -98,18 +116,51 @@ pub struct AppBskyActorDefsContentlabelpref {
 pub struct AppBskyActorDefsSavedfeedspref {
   pub pinned: Vec<String>,
   pub saved: Vec<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsPersonaldetailspref {
   pub birth_date: Option<DateTime<Utc>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsFeedviewpref {
+  pub feed: String,
+  pub hide_replies: Option<bool>,
+  pub hide_replies_by_unfollowed: Option<bool>,
+  pub hide_replies_by_like_count: Option<i64>,
+  pub hide_reposts: Option<bool>,
+  pub hide_quote_posts: Option<bool>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsThreadviewpref {
+  pub sort: Option<String>,
+  pub prioritize_followed_users: Option<bool>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternal {
   pub external: AppBskyEmbedExternalExternal,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -119,12 +170,18 @@ pub struct AppBskyEmbedExternalExternal {
   pub title: String,
   pub description: String,
   pub thumb: Option<Blob>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternalView {
   pub external: AppBskyEmbedExternalViewexternal,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -134,12 +191,18 @@ pub struct AppBskyEmbedExternalViewexternal {
   pub title: String,
   pub description: String,
   pub thumb: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedImages {
   pub images: Vec<AppBskyEmbedImagesImage>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -148,6 +211,9 @@ pub struct AppBskyEmbedImagesImage {
   pub image: Blob,
   pub alt: String,
   pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// width:height represents an aspect ratio. It may be approximate, and may not correspond to absolute dimensions in any given unit.
@@ -156,12 +222,18 @@ pub struct AppBskyEmbedImagesImage {
 pub struct AppBskyEmbedImagesAspectratio {
   pub width: i64,
   pub height: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedImagesView {
   pub images: Vec<AppBskyEmbedImagesViewimage>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -171,18 +243,27 @@ pub struct AppBskyEmbedImagesViewimage {
   pub fullsize: String,
   pub alt: String,
   pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecord {
   pub record: ComAtprotoRepoStrongref,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedRecordView {
   pub record: AppBskyEmbedRecordViewRecord,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -196,6 +277,9 @@ pub struct AppBskyEmbedRecordViewrecord {
   pub indexed_at: DateTime<Utc>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
   pub embeds: Option<Vec<AppBskyEmbedRecordViewrecordEmbedsItem>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -204,6 +288,9 @@ pub struct AppBskyEmbedRecordViewnotfound {
   pub uri: String,
   #[serde(rename = "notFound")]
   pub not_found: bool,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -212,6 +299,9 @@ pub struct AppBskyEmbedRecordViewblocked {
   pub uri: String,
   pub blocked: bool,
   pub author: AppBskyFeedDefsBlockedauthor,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -219,6 +309,9 @@ pub struct AppBskyEmbedRecordViewblocked {
 pub struct AppBskyEmbedRecordwithmedia {
   pub record: AppBskyEmbedRecord,
   pub media: AppBskyEmbedRecordwithmediaMainMedia,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -226,6 +319,9 @@ pub struct AppBskyEmbedRecordwithmedia {
 pub struct AppBskyEmbedRecordwithmediaView {
   pub record: AppBskyEmbedRecordView,
   pub media: AppBskyEmbedRecordwithmediaViewMedia,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -243,6 +339,10 @@ pub struct AppBskyFeedDefsPostview {
   pub like_count: Option<i64>,
   pub viewer: Option<AppBskyFeedDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+  pub threadgate: Option<AppBskyFeedDefsThreadgateview>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -250,6 +350,9 @@ pub struct AppBskyFeedDefsPostview {
 pub struct AppBskyFeedDefsViewerstate {
   pub repost: Option<String>,
   pub like: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -258,6 +361,9 @@ pub struct AppBskyFeedDefsFeedviewpost {
   pub post: AppBskyFeedDefsPostview,
   pub reply: Option<AppBskyFeedDefsReplyref>,
   pub reason: Option<AppBskyFeedDefsFeedviewpostReason>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -265,6 +371,9 @@ pub struct AppBskyFeedDefsFeedviewpost {
 pub struct AppBskyFeedDefsReplyref {
   pub root: AppBskyFeedDefsReplyrefRoot,
   pub parent: AppBskyFeedDefsReplyrefParent,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -273,6 +382,9 @@ pub struct AppBskyFeedDefsReasonrepost {
   pub by: AppBskyActorDefsProfileviewbasic,
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -281,6 +393,10 @@ pub struct AppBskyFeedDefsThreadviewpost {
   pub post: AppBskyFeedDefsPostview,
   pub parent: Option<AppBskyFeedDefsThreadviewpostParent>,
   pub replies: Option<Vec<AppBskyFeedDefsThreadviewpostRepliesItem>>,
+  pub viewer: Option<AppBskyFeedDefsViewerthreadstate>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -289,6 +405,9 @@ pub struct AppBskyFeedDefsNotfoundpost {
   pub uri: String,
   #[serde(rename = "notFound")]
   pub not_found: bool,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -297,6 +416,9 @@ pub struct AppBskyFeedDefsBlockedpost {
   pub uri: String,
   pub blocked: bool,
   pub author: AppBskyFeedDefsBlockedauthor,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -304,6 +426,18 @@ pub struct AppBskyFeedDefsBlockedpost {
 pub struct AppBskyFeedDefsBlockedauthor {
   pub did: String,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsViewerthreadstate {
+  pub can_reply: Option<bool>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -322,12 +456,18 @@ pub struct AppBskyFeedDefsGeneratorview {
   pub avatar: Option<String>,
   pub like_count: Option<i64>,
   pub viewer: Option<AppBskyFeedDefsGeneratorviewerstate>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDefsGeneratorviewerstate {
   pub like: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -335,18 +475,39 @@ pub struct AppBskyFeedDefsGeneratorviewerstate {
 pub struct AppBskyFeedDefsSkeletonfeedpost {
   pub post: String,
   pub reason: Option<AppBskyFeedDefsSkeletonfeedpostReason>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDefsSkeletonreasonrepost {
   pub repost: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedDefsThreadgateview {
+  pub uri: Option<String>,
+  pub cid: Option<CidString>,
+  pub record: Option<Record>,
+  pub lists: Option<Vec<AppBskyGraphDefsListviewbasic>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDescribefeedgeneratorFeed {
   pub uri: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -354,6 +515,9 @@ pub struct AppBskyFeedDescribefeedgeneratorFeed {
 pub struct AppBskyFeedDescribefeedgeneratorLinks {
   pub privacy_policy: Option<String>,
   pub terms_of_service: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -364,6 +528,9 @@ pub struct AppBskyFeedGetlikesLike {
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
   pub actor: AppBskyActorDefsProfileview,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -371,6 +538,9 @@ pub struct AppBskyFeedGetlikesLike {
 pub struct AppBskyFeedPostReplyref {
   pub root: ComAtprotoRepoStrongref,
   pub parent: ComAtprotoRepoStrongref,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Deprecated: use facets instead.
@@ -381,6 +551,9 @@ pub struct AppBskyFeedPostEntity {
   #[serde(rename = "type")]
   pub value_type: String,
   pub value: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Deprecated. Use app.bsky.richtext instead -- A text segment. Start is inclusive, end is exclusive. Indices are for utf16-encoded strings.
@@ -389,6 +562,35 @@ pub struct AppBskyFeedPostEntity {
 pub struct AppBskyFeedPostTextslice {
   pub start: i64,
   pub end: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Allow replies from actors mentioned in your post.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedThreadgateMentionrule {
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Allow replies from actors you follow.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedThreadgateFollowingrule {
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Allow replies from actors on a list.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedThreadgateListrule {
+  pub list: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -401,6 +603,9 @@ pub struct AppBskyGraphDefsListviewbasic {
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyGraphDefsListviewerstate>,
   pub indexed_at: Option<DateTime<Utc>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -417,12 +622,18 @@ pub struct AppBskyGraphDefsListview {
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyGraphDefsListviewerstate>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphDefsListitemview {
   pub subject: AppBskyActorDefsProfileview,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -430,6 +641,9 @@ pub struct AppBskyGraphDefsListitemview {
 pub struct AppBskyGraphDefsListviewerstate {
   pub muted: Option<bool>,
   pub blocked: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -446,6 +660,9 @@ pub struct AppBskyNotificationListnotificationsNotification {
   pub indexed_at: DateTime<Utc>,
   pub reason_subject: Option<String>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -453,6 +670,9 @@ pub struct AppBskyNotificationListnotificationsNotification {
 pub struct AppBskyRichtextFacet {
   pub index: AppBskyRichtextFacetByteslice,
   pub features: Vec<AppBskyRichtextFacetMainFeaturesItem>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// A facet feature for actor mentions.
@@ -460,6 +680,9 @@ pub struct AppBskyRichtextFacet {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetMention {
   pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// A facet feature for links.
@@ -467,6 +690,19 @@ pub struct AppBskyRichtextFacetMention {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetLink {
   pub uri: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// A hashtag.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyRichtextFacetTag {
+  pub tag: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// A text segment. Start is inclusive, end is exclusive. Indices are for utf8-encoded strings.
@@ -477,6 +713,27 @@ pub struct AppBskyRichtextFacetByteslice {
   pub byte_start: i64,
   #[serde(rename = "byteEnd")]
   pub byte_end: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyUnspeccedDefsSkeletonsearchpost {
+  pub uri: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyUnspeccedDefsSkeletonsearchactor {
+  pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -498,6 +755,9 @@ pub struct ComAtprotoAdminDefsActionview {
   pub create_label_vals: Option<Vec<String>>,
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -519,6 +779,9 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
   pub create_label_vals: Option<Vec<String>>,
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -527,6 +790,9 @@ pub struct ComAtprotoAdminDefsActionviewcurrent {
   pub id: i64,
   pub action: ComAtprotoAdminDefsActiontype,
   pub duration_in_hours: Option<i64>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -537,6 +803,9 @@ pub struct ComAtprotoAdminDefsActionreversal {
   pub created_by: String,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -554,6 +823,9 @@ pub struct ComAtprotoAdminDefsReportview {
   pub resolved_by_action_ids: Vec<i64>,
   pub reason: Option<String>,
   pub subject_repo_handle: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -570,6 +842,9 @@ pub struct ComAtprotoAdminDefsReportviewdetail {
   #[serde(rename = "resolvedByActions")]
   pub resolved_by_actions: Vec<ComAtprotoAdminDefsActionview>,
   pub reason: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -586,6 +861,9 @@ pub struct ComAtprotoAdminDefsRepoview {
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites_disabled: Option<bool>,
   pub invite_note: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -604,18 +882,27 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
   pub invites_disabled: Option<bool>,
   pub invite_note: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsRepoviewnotfound {
   pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsReporef {
   pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -630,6 +917,9 @@ pub struct ComAtprotoAdminDefsRecordview {
   pub indexed_at: DateTime<Utc>,
   pub moderation: ComAtprotoAdminDefsModeration,
   pub repo: ComAtprotoAdminDefsRepoview,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -644,18 +934,27 @@ pub struct ComAtprotoAdminDefsRecordviewdetail {
   pub moderation: ComAtprotoAdminDefsModerationdetail,
   pub repo: ComAtprotoAdminDefsRepoview,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsRecordviewnotfound {
   pub uri: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsModeration {
   pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -664,6 +963,9 @@ pub struct ComAtprotoAdminDefsModerationdetail {
   pub actions: Vec<ComAtprotoAdminDefsActionview>,
   pub reports: Vec<ComAtprotoAdminDefsReportview>,
   pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -677,6 +979,9 @@ pub struct ComAtprotoAdminDefsBlobview {
   pub created_at: DateTime<Utc>,
   pub details: Option<ComAtprotoAdminDefsBlobviewDetails>,
   pub moderation: Option<ComAtprotoAdminDefsModeration>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -684,6 +989,9 @@ pub struct ComAtprotoAdminDefsBlobview {
 pub struct ComAtprotoAdminDefsImagedetails {
   pub width: i64,
   pub height: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -692,6 +1000,9 @@ pub struct ComAtprotoAdminDefsVideodetails {
   pub width: i64,
   pub height: i64,
   pub length: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Metadata tag on an atproto resource (eg, repo or record)
@@ -704,6 +1015,9 @@ pub struct ComAtprotoLabelDefsLabel {
   pub cts: DateTime<Utc>,
   pub cid: Option<CidString>,
   pub neg: Option<bool>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Metadata tags on an atproto record, published by the author within the record.
@@ -711,6 +1025,9 @@ pub struct ComAtprotoLabelDefsLabel {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoLabelDefsSelflabels {
   pub values: Vec<ComAtprotoLabelDefsSelflabel>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Metadata tag on an atproto record, published by the author within the record. Note -- schemas should use #selfLabels, not #selfLabel.
@@ -718,6 +1035,9 @@ pub struct ComAtprotoLabelDefsSelflabels {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoLabelDefsSelflabel {
   pub val: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -725,6 +1045,9 @@ pub struct ComAtprotoLabelDefsSelflabel {
 pub struct ComAtprotoLabelSubscribelabelsLabels {
   pub seq: i64,
   pub labels: Vec<ComAtprotoLabelDefsLabel>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -732,6 +1055,9 @@ pub struct ComAtprotoLabelSubscribelabelsLabels {
 pub struct ComAtprotoLabelSubscribelabelsInfo {
   pub name: String,
   pub message: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Create a new record.
@@ -741,6 +1067,9 @@ pub struct ComAtprotoRepoApplywritesCreate {
   pub collection: String,
   pub value: Record,
   pub rkey: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Update an existing record.
@@ -750,6 +1079,9 @@ pub struct ComAtprotoRepoApplywritesUpdate {
   pub collection: String,
   pub rkey: String,
   pub value: Record,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// Delete an existing record.
@@ -758,6 +1090,9 @@ pub struct ComAtprotoRepoApplywritesUpdate {
 pub struct ComAtprotoRepoApplywritesDelete {
   pub collection: String,
   pub rkey: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -766,6 +1101,9 @@ pub struct ComAtprotoRepoListrecordsRecord {
   pub uri: String,
   pub cid: CidString,
   pub value: Record,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -773,6 +1111,9 @@ pub struct ComAtprotoRepoListrecordsRecord {
 pub struct ComAtprotoRepoStrongref {
   pub uri: String,
   pub cid: CidString,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -782,6 +1123,9 @@ pub struct ComAtprotoServerCreateapppasswordApppassword {
   pub password: String,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -789,6 +1133,9 @@ pub struct ComAtprotoServerCreateapppasswordApppassword {
 pub struct ComAtprotoServerCreateinvitecodesAccountcodes {
   pub account: String,
   pub codes: Vec<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -804,6 +1151,9 @@ pub struct ComAtprotoServerDefsInvitecode {
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
   pub uses: Vec<ComAtprotoServerDefsInvitecodeuse>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -813,6 +1163,9 @@ pub struct ComAtprotoServerDefsInvitecodeuse {
   pub used_by: String,
   #[serde(rename = "usedAt")]
   pub used_at: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -820,6 +1173,9 @@ pub struct ComAtprotoServerDefsInvitecodeuse {
 pub struct ComAtprotoServerDescribeserverLinks {
   pub privacy_policy: Option<String>,
   pub terms_of_service: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -828,6 +1184,9 @@ pub struct ComAtprotoServerListapppasswordsApppassword {
   pub name: String,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -835,6 +1194,10 @@ pub struct ComAtprotoServerListapppasswordsApppassword {
 pub struct ComAtprotoSyncListreposRepo {
   pub did: String,
   pub head: CidString,
+  pub rev: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -853,6 +1216,9 @@ pub struct ComAtprotoSyncSubscribereposCommit {
   pub blobs: Vec<String>,
   pub time: DateTime<Utc>,
   pub prev: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -862,6 +1228,9 @@ pub struct ComAtprotoSyncSubscribereposHandle {
   pub did: String,
   pub handle: String,
   pub time: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -872,6 +1241,9 @@ pub struct ComAtprotoSyncSubscribereposMigrate {
   #[serde(rename = "migrateTo")]
   pub migrate_to: String,
   pub time: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -880,6 +1252,9 @@ pub struct ComAtprotoSyncSubscribereposTombstone {
   pub seq: i64,
   pub did: String,
   pub time: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -887,6 +1262,9 @@ pub struct ComAtprotoSyncSubscribereposTombstone {
 pub struct ComAtprotoSyncSubscribereposInfo {
   pub name: String,
   pub message: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 /// A repo operation, ie a write of a single record. For creates and updates, cid is the record&#39;s CID as of this operation. For deletes, it&#39;s null.
@@ -896,6 +1274,9 @@ pub struct ComAtprotoSyncSubscribereposRepoop {
   pub action: String,
   pub path: String,
   pub cid: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
 }
 
 #[skip_serializing_none]
@@ -943,6 +1324,7 @@ pub struct AppBskyFeedPost {
   pub embed: Option<AppBskyFeedPostMainEmbed>,
   pub langs: Option<Vec<String>>,
   pub labels: Option<AppBskyFeedPostMainLabels>,
+  pub tags: Option<Vec<String>>,
 }
 
 #[skip_serializing_none]
@@ -951,6 +1333,16 @@ pub struct AppBskyFeedRepost {
   pub subject: ComAtprotoRepoStrongref,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
+}
+
+/// Defines interaction gating rules for a thread. The rkey of the threadgate record should match the rkey of the thread&#39;s root post.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyFeedThreadgate {
+  pub post: String,
+  #[serde(rename = "createdAt")]
+  pub created_at: DateTime<Utc>,
+  pub allow: Option<Vec<AppBskyFeedThreadgateMainAllowItem>>,
 }
 
 /// A block.
@@ -1022,6 +1414,9 @@ pub enum Record {
 
   #[serde(rename = "app.bsky.feed.repost")]
   AppBskyFeedRepost(AppBskyFeedRepost),
+
+  #[serde(rename = "app.bsky.feed.threadgate")]
+  AppBskyFeedThreadgate(AppBskyFeedThreadgate),
 
   #[serde(rename = "app.bsky.graph.block")]
   AppBskyGraphBlock(AppBskyGraphBlock),
@@ -1125,6 +1520,13 @@ impl Record {
     }
   }
 
+  pub fn as_app_bsky_feed_threadgate(&self) -> Option<&AppBskyFeedThreadgate> {
+    match self {
+      Self::AppBskyFeedThreadgate(v) => Some(v),
+      _ => None,
+    }
+  }
+
   pub fn as_app_bsky_graph_block(&self) -> Option<&AppBskyGraphBlock> {
     match self {
       Self::AppBskyGraphBlock(v) => Some(v),
@@ -1167,6 +1569,7 @@ impl Record {
       Self::AppBskyFeedLike(v) => Some(v.created_at),
       Self::AppBskyFeedPost(v) => Some(v.created_at),
       Self::AppBskyFeedRepost(v) => Some(v.created_at),
+      Self::AppBskyFeedThreadgate(v) => Some(v.created_at),
       Self::AppBskyGraphBlock(v) => Some(v.created_at),
       Self::AppBskyGraphFollow(v) => Some(v.created_at),
       Self::AppBskyGraphList(v) => Some(v.created_at),
@@ -1391,33 +1794,39 @@ impl Default for Blob {
   }
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyActorGetpreferences {
   pub preferences: AppBskyActorDefsPreferences,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyActorGetprofiles {
   pub profiles: Vec<AppBskyActorDefsProfileviewdetailed>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyActorGetsuggestions {
   pub actors: Vec<AppBskyActorDefsProfileview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyActorSearchactors {
   pub actors: Vec<AppBskyActorDefsProfileview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyActorSearchactorstypeahead {
   pub actors: Vec<AppBskyActorDefsProfileviewbasic>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedDescribefeedgenerator {
   pub did: String,
@@ -1425,30 +1834,35 @@ pub struct AppBskyFeedDescribefeedgenerator {
   pub links: Option<AppBskyFeedDescribefeedgeneratorLinks>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetactorfeeds {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetactorlikes {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetauthorfeed {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetfeed {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetfeedgenerator {
   pub view: AppBskyFeedDefsGeneratorview,
@@ -1458,17 +1872,20 @@ pub struct AppBskyFeedGetfeedgenerator {
   pub is_valid: bool,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetfeedgenerators {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetfeedskeleton {
   pub feed: Vec<AppBskyFeedDefsSkeletonfeedpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetlikes {
   pub uri: String,
@@ -1477,16 +1894,26 @@ pub struct AppBskyFeedGetlikes {
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyFeedGetlistfeed {
+  pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
+  pub cursor: Option<String>,
+}
+
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetpostthread {
   pub thread: AppBskyFeedGetpostthreadMainOutputThread,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetposts {
   pub posts: Vec<AppBskyFeedDefsPostview>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetrepostedby {
   pub uri: String,
@@ -1496,24 +1923,36 @@ pub struct AppBskyFeedGetrepostedby {
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGetsuggestedfeeds {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyFeedGettimeline {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyFeedSearchposts {
+  pub posts: Vec<AppBskyFeedDefsPostview>,
+  pub cursor: Option<String>,
+  pub hits_total: Option<i64>,
+}
+
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetblocks {
   pub blocks: Vec<AppBskyActorDefsProfileview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetfollowers {
   pub subject: AppBskyActorDefsProfileview,
@@ -1521,6 +1960,7 @@ pub struct AppBskyGraphGetfollowers {
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetfollows {
   pub subject: AppBskyActorDefsProfileview,
@@ -1528,6 +1968,7 @@ pub struct AppBskyGraphGetfollows {
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetlist {
   pub list: AppBskyGraphDefsListview,
@@ -1535,99 +1976,132 @@ pub struct AppBskyGraphGetlist {
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetlistblocks {
   pub lists: Vec<AppBskyGraphDefsListview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetlistmutes {
   pub lists: Vec<AppBskyGraphDefsListview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetlists {
   pub lists: Vec<AppBskyGraphDefsListview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetmutes {
   pub mutes: Vec<AppBskyActorDefsProfileview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetsuggestedfollowsbyactor {
   pub suggestions: Vec<AppBskyActorDefsProfileview>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyNotificationGetunreadcount {
   pub count: i64,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyNotificationListnotifications {
   pub notifications: Vec<AppBskyNotificationListnotificationsNotification>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyUnspeccedGetpopular {
   pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyUnspeccedGetpopularfeedgenerators {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyUnspeccedGettimelineskeleton {
   pub feed: Vec<AppBskyFeedDefsSkeletonfeedpost>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyUnspeccedSearchactorsskeleton {
+  pub actors: Vec<AppBskyUnspeccedDefsSkeletonsearchactor>,
+  pub cursor: Option<String>,
+  pub hits_total: Option<i64>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyUnspeccedSearchpostsskeleton {
+  pub posts: Vec<AppBskyUnspeccedDefsSkeletonsearchpost>,
+  pub cursor: Option<String>,
+  pub hits_total: Option<i64>,
+}
+
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminGetinvitecodes {
   pub codes: Vec<ComAtprotoServerDefsInvitecode>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminGetmoderationactions {
   pub actions: Vec<ComAtprotoAdminDefsActionview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminGetmoderationreports {
   pub reports: Vec<ComAtprotoAdminDefsReportview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminSearchrepos {
   pub repos: Vec<ComAtprotoAdminDefsRepoview>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoIdentityResolvehandle {
   pub did: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoLabelQuerylabels {
   pub labels: Vec<ComAtprotoLabelDefsLabel>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoDescriberepo {
   pub handle: String,
@@ -1639,6 +2113,7 @@ pub struct ComAtprotoRepoDescriberepo {
   pub handle_is_correct: bool,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoGetrecord {
   pub uri: String,
@@ -1646,12 +2121,14 @@ pub struct ComAtprotoRepoGetrecord {
   pub cid: Option<CidString>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoListrecords {
   pub records: Vec<ComAtprotoRepoListrecordsRecord>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerDescribeserver {
   #[serde(rename = "availableUserDomains")]
@@ -1660,51 +2137,61 @@ pub struct ComAtprotoServerDescribeserver {
   pub links: Option<ComAtprotoServerDescribeserverLinks>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerGetaccountinvitecodes {
   pub codes: Vec<ComAtprotoServerDefsInvitecode>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerGetsession {
   pub handle: String,
   pub did: String,
   pub email: Option<String>,
+  pub email_confirmed: Option<bool>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerListapppasswords {
   pub passwords: Vec<ComAtprotoServerListapppasswordsApppassword>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncGethead {
   pub root: CidString,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncGetlatestcommit {
   pub cid: CidString,
   pub rev: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncListblobs {
   pub cids: Vec<CidString>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoSyncListrepos {
   pub repos: Vec<ComAtprotoSyncListreposRepo>,
   pub cursor: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminSendemail {
   pub sent: bool,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoModerationCreatereport {
   pub id: i64,
@@ -1718,23 +2205,27 @@ pub struct ComAtprotoModerationCreatereport {
   pub reason: Option<String>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoCreaterecord {
   pub uri: String,
   pub cid: CidString,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoPutrecord {
   pub uri: String,
   pub cid: CidString,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoUploadblob {
   pub blob: Blob,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerCreateaccount {
   #[serde(rename = "accessJwt")]
@@ -1745,16 +2236,19 @@ pub struct ComAtprotoServerCreateaccount {
   pub did: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerCreateinvitecode {
   pub code: String,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerCreateinvitecodes {
   pub codes: Vec<ComAtprotoServerCreateinvitecodesAccountcodes>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerCreatesession {
   #[serde(rename = "accessJwt")]
@@ -1764,8 +2258,10 @@ pub struct ComAtprotoServerCreatesession {
   pub handle: String,
   pub did: String,
   pub email: Option<String>,
+  pub email_confirmed: Option<bool>,
 }
 
+#[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerRefreshsession {
   #[serde(rename = "accessJwt")]
@@ -1774,6 +2270,13 @@ pub struct ComAtprotoServerRefreshsession {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoServerRequestemailupdate {
+  #[serde(rename = "tokenRequired")]
+  pub token_required: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1787,6 +2290,10 @@ pub enum AppBskyActorDefsPreferencesItem {
   AppBskyActorDefsSavedfeedspref(Box<AppBskyActorDefsSavedfeedspref>),
   #[serde(rename = "app.bsky.actor.defs#personalDetailsPref")]
   AppBskyActorDefsPersonaldetailspref(Box<AppBskyActorDefsPersonaldetailspref>),
+  #[serde(rename = "app.bsky.actor.defs#feedViewPref")]
+  AppBskyActorDefsFeedviewpref(Box<AppBskyActorDefsFeedviewpref>),
+  #[serde(rename = "app.bsky.actor.defs#threadViewPref")]
+  AppBskyActorDefsThreadviewpref(Box<AppBskyActorDefsThreadviewpref>),
 }
 
 impl Default for AppBskyActorDefsPreferencesItem {
@@ -2057,6 +2564,23 @@ impl Default for AppBskyFeedPostMainLabels {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum AppBskyFeedThreadgateMainAllowItem {
+  #[serde(rename = "app.bsky.feed.threadgate#mentionRule")]
+  AppBskyFeedThreadgateMentionrule(Box<AppBskyFeedThreadgateMentionrule>),
+  #[serde(rename = "app.bsky.feed.threadgate#followingRule")]
+  AppBskyFeedThreadgateFollowingrule(Box<AppBskyFeedThreadgateFollowingrule>),
+  #[serde(rename = "app.bsky.feed.threadgate#listRule")]
+  AppBskyFeedThreadgateListrule(Box<AppBskyFeedThreadgateListrule>),
+}
+
+impl Default for AppBskyFeedThreadgateMainAllowItem {
+  fn default() -> Self {
+    Self::AppBskyFeedThreadgateMentionrule(Box::new(AppBskyFeedThreadgateMentionrule::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum AppBskyGraphListMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
@@ -2075,6 +2599,8 @@ pub enum AppBskyRichtextFacetMainFeaturesItem {
   AppBskyRichtextFacetMention(Box<AppBskyRichtextFacetMention>),
   #[serde(rename = "app.bsky.richtext.facet#link")]
   AppBskyRichtextFacetLink(Box<AppBskyRichtextFacetLink>),
+  #[serde(rename = "app.bsky.richtext.facet#tag")]
+  AppBskyRichtextFacetTag(Box<AppBskyRichtextFacetTag>),
 }
 
 impl Default for AppBskyRichtextFacetMainFeaturesItem {
@@ -2295,6 +2821,10 @@ impl Client {
     self.jwt = jwt;
   }
 
+  pub fn get_jwt(&self) -> Option<String> {
+    self.jwt.clone()
+  }
+
   pub fn get_host(&self) -> String {
     self.host.clone()
   }
@@ -2329,11 +2859,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_actor_getprofiles(&self, actors: &[&str]) -> Result<AppBskyActorGetprofiles> {
@@ -2345,13 +2875,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let actors_value = actors.join(",");
 
-    q.push(("actors", actors_value.as_str()));
+    _q.push(("actors", actors_value.as_str()));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get a list of actors suggested for following. Used in discovery UIs.
@@ -2369,26 +2899,27 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find actors matching search criteria.
+  /// Find actors (profiles) matching search criteria.
 
   pub fn app_bsky_actor_searchactors(
     &self,
     term: Option<&str>,
+    q: Option<&str>,
     limit: Option<i64>,
     cursor: Option<&str>,
   ) -> Result<AppBskyActorSearchactors> {
@@ -2400,23 +2931,27 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if term.is_some() {
-      q.push(("term", term.unwrap_or_default()));
+      _q.push(("term", term.unwrap_or_default()));
+    };
+
+    if q.is_some() {
+      _q.push(("q", q.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Find actor suggestions for a search term.
@@ -2424,6 +2959,7 @@ impl Client {
   pub fn app_bsky_actor_searchactorstypeahead(
     &self,
     term: Option<&str>,
+    q: Option<&str>,
     limit: Option<i64>,
   ) -> Result<AppBskyActorSearchactorstypeahead> {
     let mut req = self.agent.get(&format!(
@@ -2434,19 +2970,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if term.is_some() {
-      q.push(("term", term.unwrap_or_default()));
+      _q.push(("term", term.unwrap_or_default()));
+    };
+
+    if q.is_some() {
+      _q.push(("q", q.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Returns information about a given feed generator including TOS &amp; offered feed URIs
@@ -2479,21 +3019,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A view of the posts liked by an actor.
@@ -2512,21 +3052,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A view of an actor&#39;s feed.
@@ -2546,25 +3086,25 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     };
 
     if filter.is_some() {
-      q.push(("filter", filter.unwrap_or_default()));
+      _q.push(("filter", filter.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Compose and hydrate a feed from a user&#39;s selected feed generator
@@ -2582,21 +3122,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("feed", feed));
+    _q.push(("feed", feed));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get information about a specific feed offered by a feed generator, such as its online status
@@ -2610,11 +3150,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("feed", feed));
+    _q.push(("feed", feed));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get information about a list of feed generators
@@ -2631,13 +3171,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let feeds_value = feeds.join(",");
 
-    q.push(("feeds", feeds_value.as_str()));
+    _q.push(("feeds", feeds_value.as_str()));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A skeleton of a feed provided by a feed generator
@@ -2656,21 +3196,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("feed", feed));
+    _q.push(("feed", feed));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_feed_getlikes(
@@ -2688,27 +3228,60 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("uri", uri));
+    _q.push(("uri", uri));
 
     let cid_value = serde_json::to_string(&cid)?;
 
     if cid.is_some() {
-      q.push(("cid", cid_value.as_str()));
+      _q.push(("cid", cid_value.as_str()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// A view of a recent posts from actors in a list
+
+  pub fn app_bsky_feed_getlistfeed(
+    &self,
+    list: &str,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyFeedGetlistfeed> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.feed.getListFeed",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("list", list));
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_feed_getpostthread(
@@ -2725,23 +3298,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("uri", uri));
+    _q.push(("uri", uri));
 
     let depth_value = serde_json::to_string(&depth)?;
 
     if depth.is_some() {
-      q.push(("depth", depth_value.as_str()));
+      _q.push(("depth", depth_value.as_str()));
     }
 
     let parent_height_value = serde_json::to_string(&parent_height)?;
 
     if parent_height.is_some() {
-      q.push(("parent_height", parent_height_value.as_str()));
+      _q.push(("parent_height", parent_height_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A view of an actor&#39;s feed.
@@ -2755,13 +3328,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let uris_value = uris.join(",");
 
-    q.push(("uris", uris_value.as_str()));
+    _q.push(("uris", uris_value.as_str()));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_feed_getrepostedby(
@@ -2779,27 +3352,27 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("uri", uri));
+    _q.push(("uri", uri));
 
     let cid_value = serde_json::to_string(&cid)?;
 
     if cid.is_some() {
-      q.push(("cid", cid_value.as_str()));
+      _q.push(("cid", cid_value.as_str()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get a list of suggested feeds for the viewer.
@@ -2817,19 +3390,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A view of the user&#39;s home timeline.
@@ -2848,23 +3421,56 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if algorithm.is_some() {
-      q.push(("algorithm", algorithm.unwrap_or_default()));
+      _q.push(("algorithm", algorithm.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Find posts matching search criteria
+
+  pub fn app_bsky_feed_searchposts(
+    &self,
+    q: &str,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyFeedSearchposts> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.feed.searchPosts",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("q", q));
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Who is the requester&#39;s account blocking?
@@ -2882,19 +3488,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Who is following an actor?
@@ -2913,21 +3519,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Who is an actor following?
@@ -2946,21 +3552,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Fetch a list of actors
@@ -2979,21 +3585,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("list", list));
+    _q.push(("list", list));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Which lists is the requester&#39;s account blocking?
@@ -3011,19 +3617,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Which lists is the requester&#39;s account muting?
@@ -3041,19 +3647,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Fetch a list of lists that belong to an actor
@@ -3072,21 +3678,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Who does the viewer mute?
@@ -3104,19 +3710,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get suggested follows related to a given actor.
@@ -3133,11 +3739,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("actor", actor));
+    _q.push(("actor", actor));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_notification_getunreadcount(
@@ -3152,15 +3758,15 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let seen_at_value = serde_json::to_string(&seen_at)?;
 
     if seen_at.is_some() {
-      q.push(("seen_at", seen_at_value.as_str()));
+      _q.push(("seen_at", seen_at_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   pub fn app_bsky_notification_listnotifications(
@@ -3177,28 +3783,28 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
     let seen_at_value = serde_json::to_string(&seen_at)?;
 
     if seen_at.is_some() {
-      q.push(("seen_at", seen_at_value.as_str()));
+      _q.push(("seen_at", seen_at_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// An unspecced view of globally popular items
+  /// DEPRECATED: will be removed soon, please find a feed generator alternative
 
   pub fn app_bsky_unspecced_getpopular(
     &self,
@@ -3214,25 +3820,25 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let include_nsfw_value = serde_json::to_string(&include_nsfw)?;
 
     if include_nsfw.is_some() {
-      q.push(("include_nsfw", include_nsfw_value.as_str()));
+      _q.push(("include_nsfw", include_nsfw_value.as_str()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// An unspecced view of globally popular feed generators
@@ -3251,23 +3857,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     };
 
     if query.is_some() {
-      q.push(("query", query.unwrap_or_default()));
+      _q.push(("query", query.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// A skeleton of a timeline - UNSPECCED &amp; WILL GO AWAY SOON
@@ -3285,19 +3891,92 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Backend Actors (profile) search, returning only skeleton
+
+  pub fn app_bsky_unspecced_searchactorsskeleton(
+    &self,
+    q: &str,
+    typeahead: Option<bool>,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyUnspeccedSearchactorsskeleton> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.unspecced.searchActorsSkeleton",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("q", q));
+
+    let typeahead_value = serde_json::to_string(&typeahead)?;
+
+    if typeahead.is_some() {
+      _q.push(("typeahead", typeahead_value.as_str()));
+    }
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Backend Posts search, returning only skeleton
+
+  pub fn app_bsky_unspecced_searchpostsskeleton(
+    &self,
+    q: &str,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<AppBskyUnspeccedSearchpostsskeleton> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.unspecced.searchPostsSkeleton",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("q", q));
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Admin view of invite codes
@@ -3316,23 +3995,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if sort.is_some() {
-      q.push(("sort", sort.unwrap_or_default()));
+      _q.push(("sort", sort.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// View details about a moderation action.
@@ -3349,13 +4028,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let id_value = serde_json::to_string(&id)?;
 
-    q.push(("id", id_value.as_str()));
+    _q.push(("id", id_value.as_str()));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// List moderation actions related to a subject.
@@ -3374,23 +4053,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if subject.is_some() {
-      q.push(("subject", subject.unwrap_or_default()));
+      _q.push(("subject", subject.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// View details about a moderation report.
@@ -3407,13 +4086,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let id_value = serde_json::to_string(&id)?;
 
-    q.push(("id", id_value.as_str()));
+    _q.push(("id", id_value.as_str()));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// List moderation reports related to a subject.
@@ -3438,55 +4117,55 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if subject.is_some() {
-      q.push(("subject", subject.unwrap_or_default()));
+      _q.push(("subject", subject.unwrap_or_default()));
     }
 
     let ignore_subjects_value = serde_json::to_string(&ignore_subjects)?;
 
     if ignore_subjects.is_some() {
-      q.push(("ignore_subjects", ignore_subjects_value.as_str()));
+      _q.push(("ignore_subjects", ignore_subjects_value.as_str()));
     };
 
     if actioned_by.is_some() {
-      q.push(("actioned_by", actioned_by.unwrap_or_default()));
+      _q.push(("actioned_by", actioned_by.unwrap_or_default()));
     }
 
     let reporters_value = serde_json::to_string(&reporters)?;
 
     if reporters.is_some() {
-      q.push(("reporters", reporters_value.as_str()));
+      _q.push(("reporters", reporters_value.as_str()));
     }
 
     let resolved_value = serde_json::to_string(&resolved)?;
 
     if resolved.is_some() {
-      q.push(("resolved", resolved_value.as_str()));
+      _q.push(("resolved", resolved_value.as_str()));
     };
 
     if action_type.is_some() {
-      q.push(("action_type", action_type.unwrap_or_default()));
+      _q.push(("action_type", action_type.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
     let reverse_value = serde_json::to_string(&reverse)?;
 
     if reverse.is_some() {
-      q.push(("reverse", reverse_value.as_str()));
+      _q.push(("reverse", reverse_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// View details about a record.
@@ -3504,17 +4183,17 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("uri", uri));
+    _q.push(("uri", uri));
 
     let cid_value = serde_json::to_string(&cid)?;
 
     if cid.is_some() {
-      q.push(("cid", cid_value.as_str()));
+      _q.push(("cid", cid_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// View details about a repository.
@@ -3528,11 +4207,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Find repositories based on a search term.
@@ -3540,6 +4219,7 @@ impl Client {
   pub fn com_atproto_admin_searchrepos(
     &self,
     term: Option<&str>,
+    q: Option<&str>,
     invited_by: Option<&str>,
     limit: Option<i64>,
     cursor: Option<&str>,
@@ -3552,27 +4232,31 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     if term.is_some() {
-      q.push(("term", term.unwrap_or_default()));
+      _q.push(("term", term.unwrap_or_default()));
+    };
+
+    if q.is_some() {
+      _q.push(("q", q.unwrap_or_default()));
     };
 
     if invited_by.is_some() {
-      q.push(("invited_by", invited_by.unwrap_or_default()));
+      _q.push(("invited_by", invited_by.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Provides the DID of a repo.
@@ -3589,11 +4273,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("handle", handle));
+    _q.push(("handle", handle));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Find labels relevant to the provided URI patterns.
@@ -3613,29 +4297,29 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let uri_patterns_value = uri_patterns.join(",");
 
-    q.push(("uri_patterns", uri_patterns_value.as_str()));
+    _q.push(("uri_patterns", uri_patterns_value.as_str()));
 
     let sources_value = serde_json::to_string(&sources)?;
 
     if sources.is_some() {
-      q.push(("sources", sources_value.as_str()));
+      _q.push(("sources", sources_value.as_str()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get information about the repo, including the list of collections.
@@ -3649,11 +4333,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("repo", repo));
+    _q.push(("repo", repo));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get a record.
@@ -3673,21 +4357,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("repo", repo));
+    _q.push(("repo", repo));
 
-    q.push(("collection", collection));
+    _q.push(("collection", collection));
 
-    q.push(("rkey", rkey));
+    _q.push(("rkey", rkey));
 
     let cid_value = serde_json::to_string(&cid)?;
 
     if cid.is_some() {
-      q.push(("cid", cid_value.as_str()));
+      _q.push(("cid", cid_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// List a range of records in a collection.
@@ -3710,37 +4394,37 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("repo", repo));
+    _q.push(("repo", repo));
 
-    q.push(("collection", collection));
+    _q.push(("collection", collection));
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     };
 
     if rkey_start.is_some() {
-      q.push(("rkey_start", rkey_start.unwrap_or_default()));
+      _q.push(("rkey_start", rkey_start.unwrap_or_default()));
     };
 
     if rkey_end.is_some() {
-      q.push(("rkey_end", rkey_end.unwrap_or_default()));
+      _q.push(("rkey_end", rkey_end.unwrap_or_default()));
     }
 
     let reverse_value = serde_json::to_string(&reverse)?;
 
     if reverse.is_some() {
-      q.push(("reverse", reverse_value.as_str()));
+      _q.push(("reverse", reverse_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get a document describing the service&#39;s accounts configuration.
@@ -3772,21 +4456,21 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let include_used_value = serde_json::to_string(&include_used)?;
 
     if include_used.is_some() {
-      q.push(("include_used", include_used_value.as_str()));
+      _q.push(("include_used", include_used_value.as_str()));
     }
 
     let create_available_value = serde_json::to_string(&create_available)?;
 
     if create_available.is_some() {
-      q.push(("create_available", create_available_value.as_str()));
+      _q.push(("create_available", create_available_value.as_str()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Get information about the current session.
@@ -3828,17 +4512,17 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
     let cid_value = serde_json::to_string(&cid)?;
 
-    q.push(("cid", cid_value.as_str()));
+    _q.push(("cid", cid_value.as_str()));
 
     let mut ret = Vec::new();
     req
-      .query_pairs(q)
+      .query_pairs(_q)
       .call()?
       .into_reader()
       .read_to_end(&mut ret)?;
@@ -3856,17 +4540,17 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
     let cids_value = serde_json::to_string(&cids)?;
 
-    q.push(("cids", cids_value.as_str()));
+    _q.push(("cids", cids_value.as_str()));
 
     let mut ret = Vec::new();
     req
-      .query_pairs(q)
+      .query_pairs(_q)
       .call()?
       .into_reader()
       .read_to_end(&mut ret)?;
@@ -3885,13 +4569,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
     let mut ret = Vec::new();
     req
-      .query_pairs(q)
+      .query_pairs(_q)
       .call()?
       .into_reader()
       .read_to_end(&mut ret)?;
@@ -3910,11 +4594,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Gets the current commit CID &amp; revision of the repo.
@@ -3931,11 +4615,11 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Gets blocks needed for existence or non-existence of record.
@@ -3955,23 +4639,23 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
-    q.push(("collection", collection));
+    _q.push(("collection", collection));
 
-    q.push(("rkey", rkey));
+    _q.push(("rkey", rkey));
 
     let commit_value = serde_json::to_string(&commit)?;
 
     if commit.is_some() {
-      q.push(("commit", commit_value.as_str()));
+      _q.push(("commit", commit_value.as_str()));
     }
 
     let mut ret = Vec::new();
     req
-      .query_pairs(q)
+      .query_pairs(_q)
       .call()?
       .into_reader()
       .read_to_end(&mut ret)?;
@@ -3990,17 +4674,17 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
     if since.is_some() {
-      q.push(("since", since.unwrap_or_default()));
+      _q.push(("since", since.unwrap_or_default()));
     }
 
     let mut ret = Vec::new();
     req
-      .query_pairs(q)
+      .query_pairs(_q)
       .call()?
       .into_reader()
       .read_to_end(&mut ret)?;
@@ -4025,25 +4709,25 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
-    q.push(("did", did));
+    _q.push(("did", did));
 
     if since.is_some() {
-      q.push(("since", since.unwrap_or_default()));
+      _q.push(("since", since.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// List dids and root cids of hosted repos
@@ -4061,19 +4745,19 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut q = Vec::new();
+    let mut _q = Vec::new();
 
     let limit_value = serde_json::to_string(&limit)?;
 
     if limit.is_some() {
-      q.push(("limit", limit_value.as_str()));
+      _q.push(("limit", limit_value.as_str()));
     };
 
     if cursor.is_some() {
-      q.push(("cursor", cursor.unwrap_or_default()));
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
-    Ok(req.query_pairs(q).call()?.into_json()?)
+    Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
   /// Sets the private preferences attached to the account.
@@ -4216,27 +4900,6 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("seen_at"), json!(seen_at));
-
-    Ok(req.send_json(json!(input))?)
-  }
-
-  /// Allow a labeler to apply labels directly.
-
-  pub fn app_bsky_unspecced_applylabels(
-    &self,
-    labels: &[&ComAtprotoLabelDefsLabel],
-  ) -> Result<ureq::Response> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/app.bsky.unspecced.applyLabels",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("labels"), json!(labels));
 
     Ok(req.send_json(json!(input))?)
   }
@@ -4726,6 +5389,30 @@ impl Client {
     Ok(req.send_bytes(bytes)?.into_json()?)
   }
 
+  /// Confirm an email using a token from com.atproto.server.requestEmailConfirmation.
+
+  pub fn com_atproto_server_confirmemail(
+    &self,
+    email: &str,
+    token: &str,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.confirmEmail",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("email"), json!(email));
+
+    input.insert(String::from("token"), json!(token));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
   /// Create an account.
 
   pub fn com_atproto_server_createaccount(
@@ -4937,6 +5624,36 @@ impl Client {
     Ok(req.call()?)
   }
 
+  /// Request an email with a code to confirm ownership of email
+
+  pub fn com_atproto_server_requestemailconfirmation(&self) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.requestEmailConfirmation",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?)
+  }
+
+  /// Request a token in order to update email.
+
+  pub fn com_atproto_server_requestemailupdate(
+    &self,
+  ) -> Result<ComAtprotoServerRequestemailupdate> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.requestEmailUpdate",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
+  }
+
   /// Initiate a user account password reset via email.
 
   pub fn com_atproto_server_requestpasswordreset(&self, email: &str) -> Result<ureq::Response> {
@@ -4993,6 +5710,32 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("name"), json!(name));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Update an account&#39;s email.
+
+  pub fn com_atproto_server_updateemail(
+    &self,
+    email: &str,
+    token: Option<&str>,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.updateEmail",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("email"), json!(email));
+
+    if let Some(v) = &token {
+      input.insert(String::from("token"), json!(v));
+    }
 
     Ok(req.send_json(json!(input))?)
   }

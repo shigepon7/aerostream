@@ -32,13 +32,13 @@ impl Header {
 
 impl ComAtprotoSyncSubscribereposCommit {
   /// Returns the posts included in an operation to the repository
-  pub fn get_post(&self) -> Vec<(String, AppBskyFeedPost)> {
+  pub fn get_post(&self) -> Vec<(ComAtprotoSyncSubscribereposRepoop, AppBskyFeedPost)> {
     let ret = self
       .ops
       .iter()
-      .filter(|op| op.action == "create" && op.path.starts_with("app.bsky.feed.post"))
-      .filter_map(|op| Cid::from_str(&op.cid).ok().map(|c| (op.path.clone(), c)))
-      .filter_map(|(path, cid)| {
+      .filter(|op| op.path.starts_with("app.bsky.feed.post"))
+      .filter_map(|op| Cid::from_str(&op.cid).ok().map(|c| (op, c)))
+      .filter_map(|(op, cid)| {
         Blocks::from(self.blocks.as_slice())
           .get(&cid)
           .and_then(|ipld| {
@@ -46,7 +46,7 @@ impl ComAtprotoSyncSubscribereposCommit {
               .encode(&ipld)
               .ok()
               .and_then(|j| serde_json::from_slice(&j).ok())
-              .map(|p| (path, p))
+              .map(|p| (op.clone(), p))
           })
       })
       .collect();
@@ -55,12 +55,16 @@ impl ComAtprotoSyncSubscribereposCommit {
 
   /// Returns the text of all posts included in an operation to the repository
   pub fn get_post_text(&self) -> Vec<String> {
-    self.get_post().into_iter().map(|(_, fp)| fp.text).collect()
+    self
+      .get_post()
+      .into_iter()
+      .filter_map(|(op, fp)| (op.action == "create").then(|| fp.text))
+      .collect()
   }
 
   /// Returns the cid of first post included in an operation to the repository
   pub fn get_post_path(&self) -> Option<String> {
-    self.get_post().first().map(|(path, _)| path.clone())
+    self.get_post().first().map(|(op, _)| op.path.clone())
   }
 }
 
@@ -138,9 +142,10 @@ pub struct Event {
   pub payload: ComAtprotoSyncSubscribereposMainMessage,
 }
 
+/// Op
 #[derive(Debug, Clone, DagCbor)]
 #[allow(non_snake_case)]
-struct RepoOp {
+pub struct RepoOp {
   pub action: String,
   pub path: String,
   pub cid: Option<Link<Cid>>,
@@ -184,6 +189,7 @@ impl From<CommitInner> for ComAtprotoSyncSubscribereposCommit {
           action: op.action.clone(),
           path: op.path.clone(),
           cid: op.cid.map(|c| c.to_string()).unwrap_or_default(),
+          ..Default::default()
         })
         .collect(),
       blobs: value
@@ -198,6 +204,7 @@ impl From<CommitInner> for ComAtprotoSyncSubscribereposCommit {
         .collect(),
       time: value.time.parse().unwrap_or_default(),
       prev: value.prev.map(|p| p.to_string()),
+      ..Default::default()
     }
   }
 }
@@ -217,6 +224,7 @@ impl From<HandleInner> for ComAtprotoSyncSubscribereposHandle {
       did: value.did,
       handle: value.handle,
       time: value.time.parse().unwrap_or_default(),
+      ..Default::default()
     }
   }
 }
@@ -237,6 +245,7 @@ impl From<MigrateInner> for ComAtprotoSyncSubscribereposMigrate {
       did: value.did,
       migrate_to: value.migrateTo.unwrap_or_default(),
       time: value.time.parse().unwrap_or_default(),
+      ..Default::default()
     }
   }
 }
@@ -254,6 +263,7 @@ impl From<TombstoneInner> for ComAtprotoSyncSubscribereposTombstone {
       seq: value.seq,
       did: value.did,
       time: value.time.parse().unwrap_or_default(),
+      ..Default::default()
     }
   }
 }
@@ -269,6 +279,7 @@ impl From<InfoInner> for ComAtprotoSyncSubscribereposInfo {
     Self {
       name: value.name,
       message: value.message,
+      ..Default::default()
     }
   }
 }
