@@ -1,4 +1,7 @@
-use std::path::{Path, PathBuf};
+use std::{
+  path::{Path, PathBuf},
+  time::Duration,
+};
 
 use aerostream::{
   api::{
@@ -106,10 +109,12 @@ impl Subscription for KeyWord {
 fn main() -> Result<()> {
   env_logger::init();
   let handle = std::env::var("FEEDGENERATOR_PUBLISHER_HANDLE")?;
+  let password = std::env::var("FEEDGENERATOR_PUBLISHER_PASSWORD")?;
   let host = std::env::var("FEEDGENERATOR_HOST")?;
   let threads = std::env::var("FEEDGENERATOR_THREADS")?.parse()?;
   let storage = std::env::var("FEEDGENERATOR_STORAGE_PATH")?;
   let mut client = Client::default();
+  client.login(&handle, &password).unwrap();
   let publisher = match handle.starts_with("did:plc:") {
     true => handle.clone(),
     false => client.get_handle(&handle)?,
@@ -137,5 +142,7 @@ fn main() -> Result<()> {
   server.add_algorithm(Box::new(taste.clone()));
   server.set_subscription(Box::new(taste));
   server.start()?;
-  Ok(())
+  loop {
+    std::thread::sleep(Duration::from_secs(1));
+  }
 }
