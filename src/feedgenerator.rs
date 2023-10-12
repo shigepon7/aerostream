@@ -17,7 +17,7 @@ use crate::{
 
 /// Custom Feed
 pub trait Algorithm: Sync + Send {
-  fn get_name(&self) -> &str;
+  fn get_name(&self) -> String;
   fn handler(
     &self,
     limit: Option<usize>,

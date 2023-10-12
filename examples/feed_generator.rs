@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use aerostream::{
   api::{AppBskyFeedGetfeedskeleton, ComAtprotoSyncSubscribereposCommit},
-  Algorithm, AtUri, Client, Cursor, FeedGenerator, FeedPost, FeedPosts, Subscription,
+  Algorithm, AtUri, Cursor, FeedGenerator, FeedPost, FeedPosts, Subscription,
 };
 use anyhow::Result;
 
@@ -39,8 +39,8 @@ impl KeyWord {
 }
 
 impl Algorithm for KeyWord {
-  fn get_name(&self) -> &str {
-    self.name.as_str()
+  fn get_name(&self) -> String {
+    self.name.clone()
   }
 
   fn handler(
@@ -98,10 +98,6 @@ fn main() -> Result<()> {
   let host = std::env::var("FEEDGENERATOR_HOST")?;
   let threads = std::env::var("FEEDGENERATOR_THREADS")?.parse()?;
   let storage = std::env::var("FEEDGENERATOR_STORAGE_PATH")?;
-  let feed_handle = std::env::var("FEEDGENERATOR_FEED_HANDLE")?;
-  let feed_password = std::env::var("FEEDGENERATOR_FEED_PASSWORD")?;
-  let mut client = Client::default();
-  client.login(&feed_handle, &feed_password).unwrap();
   let taste = KeyWord::new("taste", "美味", storage);
   let mut server = FeedGenerator::new(handle, password, host, threads);
   server.add_algorithm(Box::new(taste.clone()));
