@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use aerostream::{
   api::{AppBskyFeedGetfeedskeleton, ComAtprotoSyncSubscribereposCommit},
-  Algorithm, AtUri, Cursor, FeedGenerator, FeedPost, FeedPosts, Subscription,
+  Algorithm, AtUri, Client, Cursor, FeedGenerator, FeedPost, FeedPosts, Subscription,
 };
 use anyhow::Result;
 
@@ -12,10 +12,16 @@ struct KeyWord {
   name: String,
   keyword: String,
   storage: String,
+  publisher: String,
 }
 
 impl KeyWord {
-  fn new<T1: ToString, T2: ToString, T3: ToString>(name: T1, keyword: T2, storage: T3) -> Self {
+  fn new<T1: ToString, T2: ToString, T3: ToString, T4: ToString>(
+    name: T1,
+    keyword: T2,
+    storage: T3,
+    publisher: T4,
+  ) -> Self {
     let storage = storage.to_string();
     let posts = FeedPosts::from(
       std::fs::File::open(Self::feed_filename(&storage))
@@ -23,13 +29,12 @@ impl KeyWord {
         .and_then(|feed| serde_json::from_reader::<_, Vec<FeedPost>>(feed).ok())
         .unwrap_or_default(),
     );
-    let name = name.to_string();
-    let keyword = keyword.to_string();
     Self {
       posts,
-      name,
-      keyword,
+      name: name.to_string(),
+      keyword: keyword.to_string(),
       storage,
+      publisher: publisher.to_string(),
     }
   }
 
@@ -41,6 +46,10 @@ impl KeyWord {
 impl Algorithm for KeyWord {
   fn get_name(&self) -> String {
     self.name.clone()
+  }
+
+  fn get_publisher(&self) -> String {
+    self.publisher.clone()
   }
 
   fn handler(
@@ -94,12 +103,16 @@ impl Subscription for KeyWord {
 fn main() -> Result<()> {
   env_logger::init();
   let handle = std::env::var("FEEDGENERATOR_PUBLISHER_HANDLE")?;
-  let password = std::env::var("FEEDGENERATOR_PUBLISHER_PASSWORD")?;
   let host = std::env::var("FEEDGENERATOR_HOST")?;
   let threads = std::env::var("FEEDGENERATOR_THREADS")?.parse()?;
   let storage = std::env::var("FEEDGENERATOR_STORAGE_PATH")?;
-  let taste = KeyWord::new("taste", "美味", storage);
-  let mut server = FeedGenerator::new(handle, password, host, threads);
+  let mut client = Client::default();
+  let publisher = match handle.starts_with("did:plc:") {
+    true => handle.clone(),
+    false => client.get_handle(&handle)?,
+  };
+  let taste = KeyWord::new("taste", "美味", storage, publisher);
+  let mut server = FeedGenerator::new(host, threads);
   server.add_algorithm(Box::new(taste.clone()));
   server.set_subscription(Box::new(taste));
   server.start()?;

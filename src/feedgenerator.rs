@@ -18,6 +18,7 @@ use crate::{
 /// Custom Feed
 pub trait Algorithm: Sync + Send {
   fn get_name(&self) -> String;
+  fn get_publisher(&self) -> String;
   fn handler(
     &self,
     limit: Option<usize>,
@@ -26,11 +27,11 @@ pub trait Algorithm: Sync + Send {
     jwt: Option<String>,
   ) -> AppBskyFeedGetfeedskeleton;
 
-  fn to_feed(&self, publisher: &str) -> AppBskyFeedDescribefeedgeneratorFeed {
+  fn to_feed(&self) -> AppBskyFeedDescribefeedgeneratorFeed {
     AppBskyFeedDescribefeedgeneratorFeed {
       uri: AtUri::new(
         "",
-        publisher,
+        &self.get_publisher(),
         &format!("/app.bsky.feed.generator/{}", self.get_name()),
         "",
       )
@@ -155,12 +156,7 @@ fn worker(server: Arc<Server>, context: Arc<Context>) {
             feeds: context
               .algorithms
               .as_ref()
-              .map(|algos| {
-                algos
-                  .iter()
-                  .map(|a| a.to_feed(&context.publisher))
-                  .collect::<Vec<_>>()
-              })
+              .map(|algos| algos.iter().map(|a| a.to_feed()).collect::<Vec<_>>())
               .unwrap_or_default(),
             links: None,
           };
@@ -185,13 +181,13 @@ fn worker(server: Arc<Server>, context: Arc<Context>) {
           let mut algo = None;
           if let Some(feed) = AtUri::from_uri(feed) {
             if let Some(host) = &feed.host {
-              if *host == context.publisher {
-                if let Some(collection) = feed.collection() {
-                  if collection == "app.bsky.feed.generator" {
-                    if let Some(rkey) = feed.rkey() {
-                      if let Some(algos) = &context.algorithms {
-                        algo = algos.iter().find(|a| a.get_name() == rkey);
-                      }
+              if let Some(collection) = feed.collection() {
+                if collection == "app.bsky.feed.generator" {
+                  if let Some(rkey) = feed.rkey() {
+                    if let Some(algos) = &context.algorithms {
+                      algo = algos
+                        .iter()
+                        .find(|a| a.get_publisher() == *host && a.get_name() == rkey);
                     }
                   }
                 }
@@ -248,7 +244,6 @@ fn worker(server: Arc<Server>, context: Arc<Context>) {
 }
 
 struct Context {
-  publisher: String,
   hostname: String,
   algorithms: Option<Vec<Box<dyn Algorithm>>>,
 }
@@ -263,25 +258,16 @@ impl Context {
 pub struct FeedGenerator {
   threads: usize,
   hostname: String,
-  id: String,
-  pw: String,
   algorithms: Option<Vec<Box<dyn Algorithm>>>,
   subscirption: Option<Box<dyn Subscription>>,
 }
 
 impl FeedGenerator {
   /// Create new feed generator
-  pub fn new<T1: ToString, T2: ToString, T3: ToString>(
-    id: T1,
-    pw: T2,
-    hostname: T3,
-    threads: usize,
-  ) -> Self {
+  pub fn new<T: ToString>(hostname: T, threads: usize) -> Self {
     Self {
       threads,
       hostname: hostname.to_string(),
-      id: id.to_string(),
-      pw: pw.to_string(),
       algorithms: None,
       subscirption: None,
     }
@@ -320,14 +306,8 @@ impl FeedGenerator {
   /// Start feed generator
   pub fn start(&mut self) -> Result<()> {
     let mut client = Client::default();
-    client.login(&self.id, &self.pw)?;
     client.connect_ws()?;
-    let publisher = match self.id.starts_with("did:plc:") {
-      true => self.id.clone(),
-      false => client.get_handle(&self.id)?,
-    };
     let context = Arc::new(Context {
-      publisher,
       hostname: self.hostname.clone(),
       algorithms: self.algorithms.take(),
     });
