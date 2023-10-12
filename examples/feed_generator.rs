@@ -1,10 +1,13 @@
 use std::path::{Path, PathBuf};
 
 use aerostream::{
-  api::{AppBskyFeedGetfeedskeleton, ComAtprotoSyncSubscribereposCommit},
+  api::{
+    AppBskyFeedGenerator, AppBskyFeedGetfeedskeleton, ComAtprotoSyncSubscribereposCommit, Record,
+  },
   Algorithm, AtUri, Client, Cursor, FeedGenerator, FeedPost, FeedPosts, Subscription,
 };
 use anyhow::Result;
+use chrono::Utc;
 
 #[derive(Clone)]
 struct KeyWord {
@@ -111,7 +114,25 @@ fn main() -> Result<()> {
     true => handle.clone(),
     false => client.get_handle(&handle)?,
   };
-  let taste = KeyWord::new("taste", "美味", storage, publisher);
+  let keyword = "美味";
+  let taste = KeyWord::new("taste", keyword, storage, publisher);
+  client
+    .client
+    .com_atproto_repo_putrecord(
+      &handle,
+      "app.bsky.feed.generator",
+      "taste",
+      &Record::AppBskyFeedGenerator(AppBskyFeedGenerator {
+        did: String::from("did:web:{host}"),
+        display_name: keyword.to_string(),
+        created_at: Utc::now(),
+        ..Default::default()
+      }),
+      None,
+      None,
+      None,
+    )
+    .unwrap();
   let mut server = FeedGenerator::new(host, threads);
   server.add_algorithm(Box::new(taste.clone()));
   server.set_subscription(Box::new(taste));

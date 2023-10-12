@@ -1,5 +1,13 @@
 //! Feed generator
-use std::{collections::HashMap, str::FromStr, sync::Arc, thread::spawn};
+use std::{
+  collections::HashMap,
+  str::FromStr,
+  sync::{
+    mpsc::{self, Receiver, Sender},
+    Arc,
+  },
+  thread::spawn,
+};
 
 use anyhow::{bail, Result};
 use libipld::multibase::Base;
@@ -42,7 +50,7 @@ pub trait Algorithm: Sync + Send {
 }
 
 /// Collect PDS commits
-pub trait Subscription {
+pub trait Subscription: Send {
   fn handler(&mut self, records: Vec<ComAtprotoSyncSubscribereposCommit>);
 }
 
@@ -83,8 +91,13 @@ impl DidDocument {
   }
 }
 
-fn worker(server: Arc<Server>, context: Arc<Context>) {
+fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
   loop {
+    if let Ok(value) = rx.try_recv() {
+      if value {
+        break;
+      }
+    }
     let request = match server.recv() {
       Ok(r) => r,
       Err(e) => {
@@ -241,6 +254,7 @@ fn worker(server: Arc<Server>, context: Arc<Context>) {
       break;
     }
   }
+  log::info!("worker thread terminate");
 }
 
 struct Context {
@@ -259,7 +273,7 @@ pub struct FeedGenerator {
   threads: usize,
   hostname: String,
   algorithms: Option<Vec<Box<dyn Algorithm>>>,
-  subscirption: Option<Box<dyn Subscription>>,
+  subscription: Option<Box<dyn Subscription>>,
 }
 
 impl FeedGenerator {
@@ -269,7 +283,7 @@ impl FeedGenerator {
       threads,
       hostname: hostname.to_string(),
       algorithms: None,
-      subscirption: None,
+      subscription: None,
     }
   }
 
@@ -300,11 +314,11 @@ impl FeedGenerator {
 
   /// Add collector for PDS commits
   pub fn set_subscription(&mut self, subscription: Box<dyn Subscription>) {
-    self.subscirption = Some(subscription);
+    self.subscription = Some(subscription);
   }
 
   /// Start feed generator
-  pub fn start(&mut self) -> Result<()> {
+  pub fn start(&mut self) -> Result<Sender<bool>> {
     let mut client = Client::default();
     client.connect_ws()?;
     let context = Arc::new(Context {
@@ -317,28 +331,55 @@ impl FeedGenerator {
       Err(e) => bail!("{}", e),
     });
     let mut guards = Vec::new();
+    let mut txs = Vec::new();
     for _ in 0..self.threads {
       let server = Arc::clone(&server);
       let context = Arc::clone(&context);
-      guards.push(spawn(move || worker(server, context)));
+      let (tx, rx) = mpsc::channel();
+      txs.push(tx);
+      guards.push(spawn(move || worker(server, context, rx)));
     }
-    loop {
-      for (no, guard) in guards.iter_mut().enumerate() {
-        if guard.is_finished() {
-          log::warn!("restart thread {}", no);
-          let server = Arc::clone(&server);
-          let context = Arc::clone(&context);
-          *guard = spawn(move || worker(server, context));
+    let mut subscription = self.subscription.take();
+    let (tx, rx) = mpsc::channel();
+    spawn(move || {
+      loop {
+        if let Ok(value) = rx.try_recv() {
+          if value {
+            break;
+          }
+        }
+        for (no, guard) in guards.iter_mut().enumerate() {
+          if guard.is_finished() {
+            log::warn!("restart thread {}", no);
+            let server = Arc::clone(&server);
+            let context = Arc::clone(&context);
+            let (tx, rx) = mpsc::channel();
+            if let Some(e) = txs.get_mut(no) {
+              *e = tx;
+            }
+            *guard = spawn(move || worker(server, context, rx));
+          }
+        }
+        let events = match client.next_event_filtered_all() {
+          Ok(e) => e,
+          Err(e) => {
+            log::warn!("subscription error : {}", e);
+            break;
+          }
+        };
+        let commits = events
+          .into_iter()
+          .filter_map(|(_, e)| e.as_commit().cloned())
+          .collect::<Vec<_>>();
+        if let Some(s) = &mut subscription {
+          s.handler(commits);
         }
       }
-      let commits = client
-        .next_event_filtered_all()?
-        .into_iter()
-        .filter_map(|(_, e)| e.as_commit().cloned())
-        .collect::<Vec<_>>();
-      if let Some(s) = &mut self.subscirption {
-        s.handler(commits);
+      for tx in txs.iter() {
+        tx.send(true).ok();
       }
-    }
+      log::info!("subscription thread terminate")
+    });
+    Ok(tx)
   }
 }
