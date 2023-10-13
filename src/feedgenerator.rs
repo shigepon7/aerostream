@@ -4,7 +4,7 @@ use std::{
   str::FromStr,
   sync::{
     mpsc::{self, Receiver, Sender},
-    Arc,
+    Arc, RwLock,
   },
   thread::spawn,
 };
@@ -50,7 +50,7 @@ pub trait Algorithm: Sync + Send {
 }
 
 /// Collect PDS commits
-pub trait Subscription: Send {
+pub trait Subscription: Sync + Send {
   fn handler(&mut self, records: Vec<ComAtprotoSyncSubscribereposCommit>);
 }
 
@@ -164,15 +164,27 @@ fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
       },
       Some("xrpc") => match paths.next() {
         Some("app.bsky.feed.describeFeedGenerator") => {
-          let rsp = AppBskyFeedDescribefeedgenerator {
+          let mut rsp = AppBskyFeedDescribefeedgenerator {
             did: context.get_service_did(),
-            feeds: context
-              .algorithms
-              .as_ref()
-              .map(|algos| algos.iter().map(|a| a.to_feed()).collect::<Vec<_>>())
-              .unwrap_or_default(),
+            feeds: Vec::new(),
             links: None,
           };
+          {
+            let read = match context.algorithms.read() {
+              Ok(r) => r,
+              Err(e) => {
+                log::error!("FeedGenerator Algorithm read lock error : {}", e);
+                std::process::exit(0);
+              }
+            };
+            if let Some(algorithms) = read.as_ref() {
+              rsp = AppBskyFeedDescribefeedgenerator {
+                did: context.get_service_did(),
+                feeds: algorithms.iter().map(|a| a.to_feed()).collect::<Vec<_>>(),
+                links: None,
+              };
+            }
+          }
           response = match serde_json::to_string(&rsp) {
             Ok(r) => Response::from_string(r).with_header(header),
             Err(e) => {
@@ -191,43 +203,56 @@ fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
             .get("feed")
             .map(|f| f.clone())
             .unwrap_or_else(|| String::new());
-          let mut algo = None;
-          if let Some(feed) = AtUri::from_uri(feed) {
-            if let Some(host) = &feed.host {
-              if let Some(collection) = feed.collection() {
-                if collection == "app.bsky.feed.generator" {
-                  if let Some(rkey) = feed.rkey() {
-                    if let Some(algos) = &context.algorithms {
-                      algo = algos
-                        .iter()
-                        .find(|a| a.get_publisher() == *host && a.get_name() == rkey);
-                    }
-                  }
-                }
+          let mut rsp = AppBskyFeedGetfeedskeleton {
+            feed: Vec::new(),
+            cursor: None,
+          };
+          {
+            let mut algo = None;
+            let read = match context.algorithms.read() {
+              Ok(r) => r,
+              Err(e) => {
+                log::error!("FeedGenerator Algorithm read lock error : {}", e);
+                std::process::exit(0);
               }
             };
-          }
-          if let Some(a) = &algo {
-            let token = request.headers().iter().find_map(|header| {
-              (header.field.as_str() == "authorization").then(|| header.value.to_string())
-            });
-            let message = token
-              .as_ref()
-              .and_then(|token| token.split(".").nth(1).map(|t| t.to_string()));
-            let body = message.and_then(|message| Base::Base64Url.decode(message).ok());
-            let json =
-              body.and_then(|body| serde_json::from_slice::<serde_json::Value>(&body).ok());
-            let did = json.and_then(|json| {
-              json
-                .get("iss")
-                .map(|value| value.to_string().replace('"', ""))
-            });
-            let rsp = a.handler(
-              queries.get("limit").and_then(|l| l.parse::<usize>().ok()),
-              queries.get("cursor").cloned(),
-              did,
-              token,
-            );
+            if let Some(algorithms) = read.as_ref() {
+              if let Some(feed) = AtUri::from_uri(feed) {
+                if let Some(host) = &feed.host {
+                  if let Some(collection) = feed.collection() {
+                    if collection == "app.bsky.feed.generator" {
+                      if let Some(rkey) = feed.rkey() {
+                        algo = algorithms
+                          .iter()
+                          .find(|a| a.get_publisher() == *host && a.get_name() == rkey);
+                      }
+                    }
+                  }
+                };
+              }
+            }
+            if let Some(a) = &algo {
+              let token = request.headers().iter().find_map(|header| {
+                (header.field.as_str() == "authorization").then(|| header.value.to_string())
+              });
+              let message = token
+                .as_ref()
+                .and_then(|token| token.split(".").nth(1).map(|t| t.to_string()));
+              let body = message.and_then(|message| Base::Base64Url.decode(message).ok());
+              let json =
+                body.and_then(|body| serde_json::from_slice::<serde_json::Value>(&body).ok());
+              let did = json.and_then(|json| {
+                json
+                  .get("iss")
+                  .map(|value| value.to_string().replace('"', ""))
+              });
+              rsp = a.handler(
+                queries.get("limit").and_then(|l| l.parse::<usize>().ok()),
+                queries.get("cursor").cloned(),
+                did,
+                token,
+              );
+            }
             response = match serde_json::to_string(&rsp) {
               Ok(r) => {
                 log::info!("{}", r);
@@ -259,7 +284,7 @@ fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
 
 struct Context {
   hostname: String,
-  algorithms: Option<Vec<Box<dyn Algorithm>>>,
+  algorithms: Arc<RwLock<Option<Vec<Box<dyn Algorithm>>>>>,
 }
 
 impl Context {
@@ -272,8 +297,8 @@ impl Context {
 pub struct FeedGenerator {
   threads: usize,
   hostname: String,
-  algorithms: Option<Vec<Box<dyn Algorithm>>>,
-  subscription: Option<Box<dyn Subscription>>,
+  algorithms: Arc<RwLock<Option<Vec<Box<dyn Algorithm>>>>>,
+  subscription: Arc<RwLock<Option<Box<dyn Subscription>>>>,
 }
 
 impl FeedGenerator {
@@ -282,39 +307,59 @@ impl FeedGenerator {
     Self {
       threads,
       hostname: hostname.to_string(),
-      algorithms: None,
-      subscription: None,
+      algorithms: Arc::new(RwLock::new(None)),
+      subscription: Arc::new(RwLock::new(None)),
     }
   }
 
   /// Remove custom feed from feed generator
   pub fn remove_algorithm(&mut self, algorithm: &dyn Algorithm) {
-    let current = self.algorithms.take().unwrap_or_default();
-    let mut algorithms = Vec::new();
-    for a in current.into_iter() {
-      if a.get_name() != algorithm.get_name() {
-        algorithms.push(a);
+    let mut write = match self.algorithms.write() {
+      Ok(w) => w,
+      Err(e) => {
+        log::error!("FeedGenerator Algorithm write lock error : {}", e);
+        std::process::exit(0);
       }
-    }
-    self.algorithms = (!algorithms.is_empty()).then(|| algorithms);
+    };
+    let new_algorithms = write
+      .take()
+      .map(|algos| {
+        algos
+          .into_iter()
+          .filter(|a| {
+            a.get_publisher() != algorithm.get_publisher() || a.get_name() != algorithm.get_name()
+          })
+          .collect::<Vec<_>>()
+      })
+      .unwrap_or_default();
+    *write = Some(new_algorithms);
   }
 
   /// Add custom feed from feed generator
   pub fn add_algorithm(&mut self, algorithm: Box<dyn Algorithm>) {
     self.remove_algorithm(algorithm.as_ref());
-    match self.algorithms.as_mut() {
-      Some(algos) => {
-        algos.push(algorithm);
+    let mut write = match self.algorithms.write() {
+      Ok(w) => w,
+      Err(e) => {
+        log::error!("FeedGenerator Algorithm write lock error : {}", e);
+        std::process::exit(0);
       }
-      None => {
-        self.algorithms = Some(vec![algorithm]);
-      }
-    }
+    };
+    let mut new_algorithms = write.take().unwrap_or_else(|| Vec::new());
+    new_algorithms.push(algorithm);
+    *write = Some(new_algorithms);
   }
 
   /// Add collector for PDS commits
   pub fn set_subscription(&mut self, subscription: Box<dyn Subscription>) {
-    self.subscription = Some(subscription);
+    let mut write = match self.subscription.write() {
+      Ok(w) => w,
+      Err(e) => {
+        log::error!("FeedGenerator Subscription write lock error : {}", e);
+        std::process::exit(0);
+      }
+    };
+    *write = Some(subscription);
   }
 
   /// Start feed generator
@@ -323,7 +368,7 @@ impl FeedGenerator {
     client.connect_ws()?;
     let context = Arc::new(Context {
       hostname: self.hostname.clone(),
-      algorithms: self.algorithms.take(),
+      algorithms: Arc::clone(&self.algorithms),
     });
     std::fs::remove_file("filters.yaml").ok();
     let server = Arc::new(match Server::http("0.0.0.0:8000") {
@@ -339,7 +384,7 @@ impl FeedGenerator {
       txs.push(tx);
       guards.push(spawn(move || worker(server, context, rx)));
     }
-    let mut subscription = self.subscription.take();
+    let subscription = Arc::clone(&self.subscription);
     let (tx, rx) = mpsc::channel();
     spawn(move || {
       loop {
@@ -371,8 +416,17 @@ impl FeedGenerator {
           .into_iter()
           .filter_map(|(_, e)| e.as_commit().cloned())
           .collect::<Vec<_>>();
-        if let Some(s) = &mut subscription {
-          s.handler(commits);
+        {
+          let mut write = match subscription.write() {
+            Ok(r) => r,
+            Err(e) => {
+              log::error!("FeedGenerator Subscription write lock error : {}", e);
+              std::process::exit(0);
+            }
+          };
+          if let Some(s) = write.as_mut() {
+            s.handler(commits);
+          }
         }
       }
       for tx in txs.iter() {
