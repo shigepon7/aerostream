@@ -294,6 +294,7 @@ impl Context {
 }
 
 /// Feed generator
+#[derive(Clone)]
 pub struct FeedGenerator {
   threads: usize,
   hostname: String,
