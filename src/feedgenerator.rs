@@ -217,7 +217,7 @@ fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
               }
             };
             if let Some(algorithms) = read.as_ref() {
-              if let Some(feed) = AtUri::from_uri(feed) {
+              if let Some(feed) = AtUri::from_uri(&feed) {
                 if let Some(host) = &feed.host {
                   if let Some(collection) = feed.collection() {
                     if collection == "app.bsky.feed.generator" {
@@ -252,6 +252,8 @@ fn worker(server: Arc<Server>, context: Arc<Context>, rx: Receiver<bool>) {
                 did,
                 token,
               );
+            } else {
+              log::warn!("no algorithm is fouund : {}", feed);
             }
             response = match serde_json::to_string(&rsp) {
               Ok(r) => {
