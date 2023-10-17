@@ -90,7 +90,8 @@ fn receiver_thread(
       Ok(res) => res,
       Err(e) => {
         log::warn!("WebSocket connect error : {}", e);
-        break;
+        std::thread::sleep(Duration::from_secs(10));
+        continue;
       }
     };
     log::info!("websocket connected");
