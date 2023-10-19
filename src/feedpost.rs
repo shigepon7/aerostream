@@ -1,6 +1,7 @@
 //! Utility definitions to consturct feed generator
 use std::{
   cmp::Ordering,
+  collections::HashMap,
   fmt::Display,
   str::FromStr,
   sync::{Arc, RwLock},
@@ -20,6 +21,7 @@ pub struct FeedPost {
   pub repo: String,
   pub indexed_at: DateTime<Utc>,
   pub post: AppBskyFeedPost,
+  pub extra: HashMap<String, String>,
 }
 
 impl FeedPost {
@@ -31,6 +33,7 @@ impl FeedPost {
       repo: repo.to_string(),
       indexed_at: Utc::now(),
       post: post.clone(),
+      extra: HashMap::new(),
     }
   }
 
@@ -51,11 +54,22 @@ impl FeedPost {
     }
   }
 
+  /// Convert to FeedGenerator response
   pub fn to_response(&self) -> AppBskyFeedDefsSkeletonfeedpost {
     AppBskyFeedDefsSkeletonfeedpost {
       post: self.uri.clone(),
       ..Default::default()
     }
+  }
+
+  /// Insert extra value
+  pub fn insert<T1: ToString, T2: ToString>(&mut self, key: T1, value: T2) {
+    self.extra.insert(key.to_string(), value.to_string());
+  }
+
+  /// Get extra value
+  pub fn get(&mut self, key: &str) -> Option<String> {
+    self.extra.get(key).cloned()
   }
 }
 
