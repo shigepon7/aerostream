@@ -3,11 +3,14 @@ use std::fmt::Display;
 
 use indexmap::IndexMap;
 use regex::Regex;
+use serde::{Deserialize, Serialize};
+use serde_with::skip_serializing_none;
 
 const ATP_URI_REGEX: &str = r#"^(at://)?((?:did:[a-zA-Z0-9:%-]+)|(?:[a-zA-Z0-9][a-zA-Z0-9.:-]*))(/[^?#\s]*)?(\?[^#\s]+)?(#[^\s]+)?$"#;
 
 /// at:// Uri
-#[derive(Debug, Clone, PartialEq)]
+#[skip_serializing_none]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AtUri {
   pub hash: Option<String>,
   pub host: Option<String>,
