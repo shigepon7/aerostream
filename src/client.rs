@@ -134,6 +134,9 @@ fn receiver_thread(
                   }
                 }
               }
+              if is_terminating {
+                break;
+              }
             }
           }
         }
