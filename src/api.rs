@@ -85,6 +85,7 @@ pub struct AppBskyActorDefsViewerstate {
   pub muted_by_list: Option<AppBskyGraphDefsListviewbasic>,
   pub blocked_by: Option<bool>,
   pub blocking: Option<String>,
+  pub blocking_by_list: Option<AppBskyGraphDefsListviewbasic>,
   pub following: Option<String>,
   pub followed_by: Option<String>,
 
@@ -738,6 +739,16 @@ pub struct AppBskyUnspeccedDefsSkeletonsearchactor {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsStatusattr {
+  pub applied: bool,
+  pub r_ref: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsActionview {
   pub id: i64,
   pub action: ComAtprotoAdminDefsActiontype,
@@ -889,6 +900,23 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsAccountview {
+  pub did: String,
+  pub handle: String,
+  #[serde(rename = "indexedAt")]
+  pub indexed_at: DateTime<Utc>,
+  pub email: Option<String>,
+  pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
+  pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
+  pub invites_disabled: Option<bool>,
+  pub invite_note: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsRepoviewnotfound {
   pub did: String,
 
@@ -900,6 +928,17 @@ pub struct ComAtprotoAdminDefsRepoviewnotfound {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsReporef {
   pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsRepoblobref {
+  pub did: String,
+  pub cid: CidString,
+  pub record_uri: Option<String>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -2083,6 +2122,13 @@ pub struct ComAtprotoAdminGetmoderationreports {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminGetsubjectstatus {
+  pub subject: ComAtprotoAdminGetsubjectstatusMainOutputSubject,
+  pub takedown: Option<ComAtprotoAdminDefsStatusattr>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminSearchrepos {
   pub repos: Vec<ComAtprotoAdminDefsRepoview>,
   pub cursor: Option<String>,
@@ -2193,6 +2239,13 @@ pub struct ComAtprotoAdminSendemail {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminUpdatesubjectstatus {
+  pub subject: ComAtprotoAdminUpdatesubjectstatusMainOutputSubject,
+  pub takedown: Option<ComAtprotoAdminDefsStatusattr>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoModerationCreatereport {
   pub id: i64,
   #[serde(rename = "reasonType")]
@@ -2234,6 +2287,7 @@ pub struct ComAtprotoServerCreateaccount {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  pub did_doc: Option<DidDoc>,
 }
 
 #[skip_serializing_none]
@@ -2257,6 +2311,7 @@ pub struct ComAtprotoServerCreatesession {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  pub did_doc: Option<DidDoc>,
   pub email: Option<String>,
   pub email_confirmed: Option<bool>,
 }
@@ -2270,6 +2325,7 @@ pub struct ComAtprotoServerRefreshsession {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  pub did_doc: Option<DidDoc>,
 }
 
 #[skip_serializing_none]
@@ -2277,6 +2333,13 @@ pub struct ComAtprotoServerRefreshsession {
 pub struct ComAtprotoServerRequestemailupdate {
   #[serde(rename = "tokenRequired")]
   pub token_required: bool,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoServerReservesigningkey {
+  #[serde(rename = "signingKey")]
+  pub signing_key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2694,6 +2757,23 @@ impl Default for ComAtprotoAdminDefsBlobviewDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum ComAtprotoAdminGetsubjectstatusMainOutputSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+  #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
+  ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+}
+
+impl Default for ComAtprotoAdminGetsubjectstatusMainOutputSubject {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum ComAtprotoAdminTakemoderationactionMainInputSubject {
   #[serde(rename = "com.atproto.admin.defs#repoRef")]
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
@@ -2702,6 +2782,40 @@ pub enum ComAtprotoAdminTakemoderationactionMainInputSubject {
 }
 
 impl Default for ComAtprotoAdminTakemoderationactionMainInputSubject {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminUpdatesubjectstatusMainInputSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+  #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
+  ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+}
+
+impl Default for ComAtprotoAdminUpdatesubjectstatusMainInputSubject {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminUpdatesubjectstatusMainOutputSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+  #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
+  ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+}
+
+impl Default for ComAtprotoAdminUpdatesubjectstatusMainOutputSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
   }
@@ -3979,6 +4093,27 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// View details about an account.
+
+  pub fn com_atproto_admin_getaccountinfo(
+    &self,
+    did: &str,
+  ) -> Result<ComAtprotoAdminDefsAccountview> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.getAccountInfo",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("did", did));
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
   /// Admin view of invite codes
 
   pub fn com_atproto_admin_getinvitecodes(
@@ -4214,13 +4349,47 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Fetch the service-specific the admin status of a subject (account, record, or blob)
+
+  pub fn com_atproto_admin_getsubjectstatus(
+    &self,
+    did: Option<&str>,
+    uri: Option<&str>,
+    blob: Option<&CidString>,
+  ) -> Result<ComAtprotoAdminGetsubjectstatus> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.getSubjectStatus",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    if did.is_some() {
+      _q.push(("did", did.unwrap_or_default()));
+    };
+
+    if uri.is_some() {
+      _q.push(("uri", uri.unwrap_or_default()));
+    }
+
+    let blob_value = serde_json::to_string(&blob)?;
+
+    if blob.is_some() {
+      _q.push(("blob", blob_value.as_str()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
   /// Find repositories based on a search term.
 
   pub fn com_atproto_admin_searchrepos(
     &self,
     term: Option<&str>,
     q: Option<&str>,
-    invited_by: Option<&str>,
     limit: Option<i64>,
     cursor: Option<&str>,
   ) -> Result<ComAtprotoAdminSearchrepos> {
@@ -4240,10 +4409,6 @@ impl Client {
 
     if q.is_some() {
       _q.push(("q", q.unwrap_or_default()));
-    };
-
-    if invited_by.is_some() {
-      _q.push(("invited_by", invited_by.unwrap_or_default()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
@@ -5165,6 +5330,32 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Update the service-specific admin status of a subject (account, record, or blob)
+
+  pub fn com_atproto_admin_updatesubjectstatus(
+    &self,
+    subject: ComAtprotoAdminUpdatesubjectstatusMainInputSubject,
+    takedown: Option<&ComAtprotoAdminDefsStatusattr>,
+  ) -> Result<ComAtprotoAdminUpdatesubjectstatus> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.updateSubjectStatus",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("subject"), json!(subject));
+
+    if let Some(v) = &takedown {
+      input.insert(String::from("takedown"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
+  }
+
   /// Updates the handle of the account
 
   pub fn com_atproto_identity_updatehandle(&self, handle: &str) -> Result<ureq::Response> {
@@ -5423,6 +5614,7 @@ impl Client {
     did: Option<&str>,
     invite_code: Option<&str>,
     recovery_key: Option<&str>,
+    plc_op: Option<&[u8]>,
   ) -> Result<ComAtprotoServerCreateaccount> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.server.createAccount",
@@ -5450,6 +5642,10 @@ impl Client {
 
     if let Some(v) = &recovery_key {
       input.insert(String::from("recovery_key"), json!(v));
+    }
+
+    if let Some(v) = &plc_op {
+      input.insert(String::from("plc_op"), json!(v));
     }
 
     Ok(req.send_json(json!(input))?.into_json()?)
@@ -5670,6 +5866,20 @@ impl Client {
     input.insert(String::from("email"), json!(email));
 
     Ok(req.send_json(json!(input))?)
+  }
+
+  /// Reserve a repo signing key for account creation.
+
+  pub fn com_atproto_server_reservesigningkey(&self) -> Result<ComAtprotoServerReservesigningkey> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.reserveSigningKey",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
   }
 
   /// Reset a user account password using a token.
