@@ -2196,6 +2196,7 @@ pub struct ComAtprotoServerGetsession {
   pub did: String,
   pub email: Option<String>,
   pub email_confirmed: Option<bool>,
+  pub did_doc: Option<DidDoc>,
 }
 
 #[skip_serializing_none]
@@ -2991,9 +2992,9 @@ impl Client {
 
     let mut _q = Vec::new();
 
-    let actors_value = actors.join(",");
+    let mut actors_value = actors.iter().map(|i| ("actors", *i)).collect::<Vec<_>>();
 
-    _q.push(("actors", actors_value.as_str()));
+    _q.append(&mut actors_value);
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
@@ -3287,9 +3288,9 @@ impl Client {
 
     let mut _q = Vec::new();
 
-    let feeds_value = feeds.join(",");
+    let mut feeds_value = feeds.iter().map(|i| ("feeds", *i)).collect::<Vec<_>>();
 
-    _q.push(("feeds", feeds_value.as_str()));
+    _q.append(&mut feeds_value);
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
@@ -3444,9 +3445,9 @@ impl Client {
 
     let mut _q = Vec::new();
 
-    let uris_value = uris.join(",");
+    let mut uris_value = uris.iter().map(|i| ("uris", *i)).collect::<Vec<_>>();
 
-    _q.push(("uris", uris_value.as_str()));
+    _q.append(&mut uris_value);
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
@@ -4464,9 +4465,12 @@ impl Client {
 
     let mut _q = Vec::new();
 
-    let uri_patterns_value = uri_patterns.join(",");
+    let mut uri_patterns_value = uri_patterns
+      .iter()
+      .map(|i| ("uriPatterns", *i))
+      .collect::<Vec<_>>();
 
-    _q.push(("uri_patterns", uri_patterns_value.as_str()));
+    _q.append(&mut uri_patterns_value);
 
     let sources_value = serde_json::to_string(&sources)?;
 
@@ -5608,13 +5612,13 @@ impl Client {
 
   pub fn com_atproto_server_createaccount(
     &self,
-    email: &str,
     handle: &str,
-    password: &str,
+    email: Option<&str>,
     did: Option<&str>,
     invite_code: Option<&str>,
+    password: Option<&str>,
     recovery_key: Option<&str>,
-    plc_op: Option<&[u8]>,
+    plc_op: Option<&Record>,
   ) -> Result<ComAtprotoServerCreateaccount> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.server.createAccount",
@@ -5626,11 +5630,11 @@ impl Client {
 
     let mut input = serde_json::Map::new();
 
-    input.insert(String::from("email"), json!(email));
-
     input.insert(String::from("handle"), json!(handle));
 
-    input.insert(String::from("password"), json!(password));
+    if let Some(v) = &email {
+      input.insert(String::from("email"), json!(v));
+    }
 
     if let Some(v) = &did {
       input.insert(String::from("did"), json!(v));
@@ -5638,6 +5642,10 @@ impl Client {
 
     if let Some(v) = &invite_code {
       input.insert(String::from("invite_code"), json!(v));
+    }
+
+    if let Some(v) = &password {
+      input.insert(String::from("password"), json!(v));
     }
 
     if let Some(v) = &recovery_key {
@@ -5870,7 +5878,10 @@ impl Client {
 
   /// Reserve a repo signing key for account creation.
 
-  pub fn com_atproto_server_reservesigningkey(&self) -> Result<ComAtprotoServerReservesigningkey> {
+  pub fn com_atproto_server_reservesigningkey(
+    &self,
+    did: Option<&str>,
+  ) -> Result<ComAtprotoServerReservesigningkey> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.server.reserveSigningKey",
       self.host
@@ -5879,7 +5890,13 @@ impl Client {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    Ok(req.call()?.into_json()?)
+    let mut input = serde_json::Map::new();
+
+    if let Some(v) = &did {
+      input.insert(String::from("did"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
   }
 
   /// Reset a user account password using a token.
