@@ -893,6 +893,7 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
   pub invites_disabled: Option<bool>,
   pub invite_note: Option<String>,
+  pub email_confirmed_at: Option<DateTime<Utc>>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -909,6 +910,7 @@ pub struct ComAtprotoAdminDefsAccountview {
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
   pub invites_disabled: Option<bool>,
+  pub email_confirmed_at: Option<DateTime<Utc>>,
   pub invite_note: Option<String>,
 
   #[serde(flatten)]
@@ -1794,13 +1796,30 @@ impl Blocks {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
+pub struct AtProtoPds {
+  #[serde(rename = "type")]
+  pub pds_type: String,
+  pub service_endpoint: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "id")]
+pub enum AtprotoService {
+  #[serde(rename = "#atproto_pds")]
+  AtprotoPds(AtProtoPds),
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct DidDoc {
   #[serde(rename = "@context")]
   pub context: Vec<String>,
   pub id: String,
   pub also_known_as: Vec<String>,
   pub verification_method: Vec<HashMap<String, String>>,
-  pub service: Vec<HashMap<String, String>>,
+  pub service: Vec<AtprotoService>,
 }
 
 #[skip_serializing_none]
@@ -2911,15 +2930,21 @@ impl Default for ComAtprotoSyncSubscribereposMainMessage {
 
 pub struct Client {
   host: String,
+  bgs_host: String,
   proxy: Option<String>,
   jwt: Option<String>,
   agent: Agent,
 }
 
 impl Client {
-  pub fn new<T1: ToString, T2: ToString>(host: T1, proxy: Option<T2>) -> Self {
+  pub fn new<T1: ToString, T2: ToString, T3: ToString>(
+    host: T1,
+    bgs_host: T2,
+    proxy: Option<T3>,
+  ) -> Self {
     Self {
       host: host.to_string(),
+      bgs_host: bgs_host.to_string(),
       proxy: proxy.as_ref().map(|p| p.to_string()),
       jwt: None,
       agent: match proxy {
@@ -2942,6 +2967,10 @@ impl Client {
 
   pub fn get_host(&self) -> String {
     self.host.clone()
+  }
+
+  pub fn get_bgs_host(&self) -> String {
+    self.bgs_host.clone()
   }
 
   pub fn get_proxy(&self) -> Option<String> {
@@ -6010,7 +6039,7 @@ impl Client {
   ) -> Result<WebSocket<MaybeTlsStream<TcpStream>>> {
     let mut url = Url::parse(&format!(
       "wss://{}/xrpc/com.atproto.label.subscribeLabels",
-      self.host
+      self.bgs_host
     ))?;
 
     let mut query = Vec::new();
@@ -6033,7 +6062,7 @@ impl Client {
   ) -> Result<WebSocket<MaybeTlsStream<TcpStream>>> {
     let mut url = Url::parse(&format!(
       "wss://{}/xrpc/com.atproto.sync.subscribeRepos",
-      self.host
+      self.bgs_host
     ))?;
 
     let mut query = Vec::new();

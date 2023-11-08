@@ -20,7 +20,7 @@ use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
 use ratatui::{Frame, Terminal};
-use ratatui_image::picker::{Picker, ProtocolType};
+use ratatui_image::picker::Picker;
 use ratatui_image::{FixedImage, Resize};
 use textwrap::wrap;
 
@@ -142,11 +142,11 @@ fn ui<B: Backend>(
       Ok(wsize) => (wsize.width / wsize.columns, wsize.height / wsize.rows),
       Err(_) => (5, 10),
     };
-    let mut picker = Picker::new(font_size, ProtocolType::Halfblocks, None).unwrap();
+    let mut picker = Picker::new(font_size);
     f.render_widget(
       FixedImage::new(
         picker
-          .new_static_fit(img_data.clone(), size, Resize::Fit)
+          .new_protocol(img_data.clone(), size, Resize::Fit)
           .unwrap()
           .as_ref(),
       ),

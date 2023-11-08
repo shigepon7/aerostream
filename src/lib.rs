@@ -104,6 +104,7 @@ pub mod event;
 pub mod feedgenerator;
 pub mod feedpost;
 pub mod filter;
+pub mod plc;
 
 pub use aturi::AtUri;
 pub use client::{Client, Repo};
@@ -111,3 +112,4 @@ pub use event::{Blocks, Event, Header};
 pub use feedgenerator::{Algorithm, FeedGenerator, Subscription};
 pub use feedpost::{Cursor, FeedPost, FeedPosts};
 pub use filter::{Filter, Filters, Keywords, Subscribes};
+pub use plc::Plc;

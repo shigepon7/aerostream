@@ -11,8 +11,9 @@ use anyhow::{anyhow, bail, Result};
 use chrono::{DateTime, Datelike, Utc};
 use serde::Deserialize;
 use tungstenite::Message;
+use url::Url;
 
-use crate::api::*;
+use crate::{api::*, Plc};
 use crate::{Event, Filters};
 
 /// Client to use Bluesky server
@@ -31,7 +32,11 @@ pub struct Client {
 
 impl Clone for Client {
   fn clone(&self) -> Self {
-    let mut client = crate::api::Client::new(self.client.get_host(), self.client.get_proxy());
+    let mut client = crate::api::Client::new(
+      self.client.get_host(),
+      self.client.get_bgs_host(),
+      self.client.get_proxy(),
+    );
     client.set_jwt(self.client.get_jwt());
     Self {
       client,
@@ -54,7 +59,7 @@ impl Default for Client {
       .ok()
       .or_else(|| std::env::var("https_proxy").ok());
     let mut client = Self {
-      client: crate::api::Client::new("bsky.social", proxy),
+      client: crate::api::Client::new("bsky.social", "bsky.network", proxy),
       refresh_jwt: None,
       repo: None,
       repo_store: Arc::new(Mutex::new(HashMap::new())),
@@ -78,6 +83,7 @@ impl Default for Client {
 
 fn receiver_thread(
   host: String,
+  bgs_host: String,
   last_received: Arc<Mutex<DateTime<Utc>>>,
   mut tx_map: HashMap<String, Sender<Event>>,
   filters: Arc<Mutex<Filters>>,
@@ -85,7 +91,7 @@ fn receiver_thread(
   let mut last_seq = None;
   let mut is_terminating = false;
   loop {
-    let client = crate::api::Client::new(&host, None::<&str>);
+    let client = crate::api::Client::new(&host, &bgs_host, None::<&str>);
     let mut ws = match client.com_atproto_sync_subscriberepos(last_seq) {
       Ok(res) => res,
       Err(e) => {
@@ -168,7 +174,8 @@ impl Client {
 
   /// Set Host
   pub fn set_host<T: ToString>(&mut self, host: T) {
-    self.client = crate::api::Client::new(host, self.client.get_proxy());
+    self.client =
+      crate::api::Client::new(host, self.client.get_bgs_host(), self.client.get_proxy());
   }
 
   /// Set timeout for waiting to receive WebSocket events
@@ -179,6 +186,21 @@ impl Client {
   /// Login to Bluesky server
   pub fn login<T1: ToString, T2: ToString>(&mut self, id: T1, pw: T2) -> Result<()> {
     let id = id.to_string();
+    if let Ok(did) = self.client.com_atproto_identity_resolvehandle(&id) {
+      if let Ok(diddoc) = Plc::default().resolve_did(&did.did) {
+        if let Some(pds) = diddoc.service.iter().find_map(|s| match &s {
+          AtprotoService::AtprotoPds(pds) => {
+            (pds.pds_type == "AtprotoPersonalDataServer").then(|| pds)
+          }
+        }) {
+          if let Ok(url) = Url::parse(&pds.service_endpoint) {
+            if let Some(host) = url.host() {
+              self.set_host(host);
+            }
+          }
+        }
+      }
+    }
     let session = self
       .client
       .com_atproto_server_createsession(&id, &pw.to_string())?;
@@ -257,6 +279,7 @@ impl Client {
   /// Connect to WebSocket
   pub fn connect_ws(&mut self) -> Result<()> {
     let host = self.client.get_host();
+    let bgs_host = self.client.get_bgs_host();
     let mut tx_map = HashMap::new();
     let mut rx_map = HashMap::new();
     if let Ok(filters) = self.filters.lock() {
@@ -278,7 +301,7 @@ impl Client {
     let last_received = Arc::clone(&self.last_received);
     self.rx = Arc::new(Mutex::new(rx_map));
     self.thread = Some(spawn(move || {
-      receiver_thread(host, last_received, tx_map, filters);
+      receiver_thread(host, bgs_host, last_received, tx_map, filters);
     }));
     Ok(())
   }
