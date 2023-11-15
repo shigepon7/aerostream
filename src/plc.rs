@@ -5,6 +5,7 @@ use chrono::{DateTime, Utc};
 use libipld::Cid;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ureq::{Agent, Proxy};
 
 use crate::api::DidDoc;
 
@@ -63,12 +64,23 @@ pub struct LogEntry {
 
 pub struct Plc {
   host: String,
+  agent: Agent,
 }
 
 impl Default for Plc {
   fn default() -> Self {
-    Self {
-      host: String::from("plc.directory"),
+    match std::env::var("HTTPS_PROXY")
+      .ok()
+      .or_else(|| std::env::var("https_proxy").ok())
+    {
+      Some(proxy) => Self {
+        host: String::from("plc.directory"),
+        agent: ureq::builder().proxy(Proxy::new(proxy).unwrap()).build(),
+      },
+      None => Self {
+        host: String::from("plc.directory"),
+        agent: ureq::agent(),
+      },
     }
   }
 }
@@ -76,7 +88,9 @@ impl Default for Plc {
 impl Plc {
   pub fn resolve_did(&self, did: &str) -> Result<DidDoc> {
     Ok(
-      ureq::get(&format!("https://{}/{}", self.host, did))
+      self
+        .agent
+        .get(&format!("https://{}/{}", self.host, did))
         .call()?
         .into_json()?,
     )
@@ -84,7 +98,9 @@ impl Plc {
 
   pub fn create_plc_op(&self, did: &str, op: &PlcOp) -> Result<Value> {
     Ok(
-      ureq::post(&format!("https://{}/{}", self.host, did))
+      self
+        .agent
+        .post(&format!("https://{}/{}", self.host, did))
         .send_json(op)?
         .into_json()?,
     )
@@ -92,7 +108,9 @@ impl Plc {
 
   pub fn get_plc_op_log(&self, did: &str) -> Result<Vec<PlcOp>> {
     Ok(
-      ureq::get(&format!("https://{}/{}/log", self.host, did))
+      self
+        .agent
+        .get(&format!("https://{}/{}/log", self.host, did))
         .call()?
         .into_json()?,
     )
@@ -100,7 +118,9 @@ impl Plc {
 
   pub fn get_plc_audit_log(&self, did: &str) -> Result<Vec<LogEntry>> {
     Ok(
-      ureq::get(&format!("https://{}/{}/log/audit", self.host, did))
+      self
+        .agent
+        .get(&format!("https://{}/{}/log/audit", self.host, did))
         .call()?
         .into_json()?,
     )
@@ -108,7 +128,9 @@ impl Plc {
 
   pub fn get_last_op(&self, did: &str) -> Result<LogEntry> {
     Ok(
-      ureq::get(&format!("https://{}/{}/log/last", self.host, did))
+      self
+        .agent
+        .get(&format!("https://{}/{}/log/last", self.host, did))
         .call()?
         .into_json()?,
     )
@@ -116,7 +138,9 @@ impl Plc {
 
   pub fn get_plc_data(&self, did: &str) -> Result<Value> {
     Ok(
-      ureq::get(&format!("https://{}/{}/data", self.host, did))
+      self
+        .agent
+        .get(&format!("https://{}/{}/data", self.host, did))
         .call()?
         .into_json()?,
     )
@@ -127,7 +151,9 @@ impl Plc {
     if count > 1000 {
       count = 1000;
     }
-    let res = ureq::get(&format!("https://{}/export", self.host))
+    let res = self
+      .agent
+      .get(&format!("https://{}/export", self.host))
       .query_pairs([
         ("count", count.to_string().as_str()),
         ("after", after.to_string().as_str()),
