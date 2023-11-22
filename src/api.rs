@@ -1046,7 +1046,7 @@ pub struct ComAtprotoAdminDefsVideodetails {
   pub extra: HashMap<String, Value>,
 }
 
-/// Metadata tag on an atproto resource (eg, repo or record)
+/// Metadata tag on an atproto resource (eg, repo or record).
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoLabelDefsLabel {
@@ -1071,7 +1071,7 @@ pub struct ComAtprotoLabelDefsSelflabels {
   pub extra: HashMap<String, Value>,
 }
 
-/// Metadata tag on an atproto record, published by the author within the record. Note -- schemas should use #selfLabels, not #selfLabel.
+/// Metadata tag on an atproto record, published by the author within the record. Note that schemas should use #selfLabels, not #selfLabel.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoLabelDefsSelflabel {
@@ -1308,7 +1308,7 @@ pub struct ComAtprotoSyncSubscribereposInfo {
   pub extra: HashMap<String, Value>,
 }
 
-/// A repo operation, ie a write of a single record. For creates and updates, cid is the record&#39;s CID as of this operation. For deletes, it&#39;s null.
+/// A repo operation, ie a write of a single record. For creates and updates, CID is the record&#39;s CID as of this operation. For deletes, it&#39;s null.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposRepoop {
@@ -1320,6 +1320,7 @@ pub struct ComAtprotoSyncSubscribereposRepoop {
   pub extra: HashMap<String, Value>,
 }
 
+/// A declaration of a profile.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorProfile {
@@ -1330,7 +1331,7 @@ pub struct AppBskyActorProfile {
   pub labels: Option<AppBskyActorProfileMainLabels>,
 }
 
-/// A declaration of the existence of a feed generator
+/// A declaration of the existence of a feed generator.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedGenerator {
@@ -1345,6 +1346,7 @@ pub struct AppBskyFeedGenerator {
   pub labels: Option<AppBskyFeedGeneratorMainLabels>,
 }
 
+/// A declaration of a like.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedLike {
@@ -1353,6 +1355,7 @@ pub struct AppBskyFeedLike {
   pub created_at: DateTime<Utc>,
 }
 
+/// A declaration of a post.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedPost {
@@ -1368,6 +1371,7 @@ pub struct AppBskyFeedPost {
   pub tags: Option<Vec<String>>,
 }
 
+/// A declaration of a repost.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedRepost {
@@ -1386,7 +1390,7 @@ pub struct AppBskyFeedThreadgate {
   pub allow: Option<Vec<AppBskyFeedThreadgateMainAllowItem>>,
 }
 
-/// A block.
+/// A declaration of a block.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphBlock {
@@ -1395,7 +1399,7 @@ pub struct AppBskyGraphBlock {
   pub created_at: DateTime<Utc>,
 }
 
-/// A social follow.
+/// A declaration of a social follow.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphFollow {
@@ -1427,7 +1431,7 @@ pub struct AppBskyGraphListblock {
   pub created_at: DateTime<Utc>,
 }
 
-/// An item under a declared list of actors
+/// An item under a declared list of actors.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphListitem {
@@ -2253,6 +2257,12 @@ pub struct ComAtprotoSyncListrepos {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoTempFetchlabels {
+  pub labels: Vec<ComAtprotoLabelDefsLabel>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminSendemail {
   pub sent: bool,
 }
@@ -2991,6 +3001,8 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
+  /// Get detailed profile view of an actor.
+
   pub fn app_bsky_actor_getprofile(
     &self,
     actor: &str,
@@ -3010,6 +3022,8 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Get detailed profile views of multiple actors.
+
   pub fn app_bsky_actor_getprofiles(&self, actors: &[&str]) -> Result<AppBskyActorGetprofiles> {
     let mut req = self.agent.get(&format!(
       "https://{}/xrpc/app.bsky.actor.getProfiles",
@@ -3028,7 +3042,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of actors suggested for following. Used in discovery UIs.
+  /// Get a list of suggested actors, used for discovery.
 
   pub fn app_bsky_actor_getsuggestions(
     &self,
@@ -3098,7 +3112,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find actor suggestions for a search term.
+  /// Find actor suggestions for a prefix search term.
 
   pub fn app_bsky_actor_searchactorstypeahead(
     &self,
@@ -3133,7 +3147,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Returns information about a given feed generator including TOS &amp; offered feed URIs
+  /// Get information about a feed generator, including policies and offered feed URIs.
 
   pub fn app_bsky_feed_describefeedgenerator(&self) -> Result<AppBskyFeedDescribefeedgenerator> {
     let mut req = self.agent.get(&format!(
@@ -3147,7 +3161,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Retrieve a list of feeds created by a given actor
+  /// Get a list of feeds created by the actor.
 
   pub fn app_bsky_feed_getactorfeeds(
     &self,
@@ -3180,7 +3194,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A view of the posts liked by an actor.
+  /// Get a list of posts liked by an actor.
 
   pub fn app_bsky_feed_getactorlikes(
     &self,
@@ -3213,7 +3227,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A view of an actor&#39;s feed.
+  /// Get a view of an actor&#39;s feed.
 
   pub fn app_bsky_feed_getauthorfeed(
     &self,
@@ -3251,7 +3265,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Compose and hydrate a feed from a user&#39;s selected feed generator
+  /// Get a hydrated feed from an actor&#39;s selected feed generator.
 
   pub fn app_bsky_feed_getfeed(
     &self,
@@ -3283,7 +3297,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about a specific feed offered by a feed generator, such as its online status
+  /// Get information about a feed generator.
 
   pub fn app_bsky_feed_getfeedgenerator(&self, feed: &str) -> Result<AppBskyFeedGetfeedgenerator> {
     let mut req = self.agent.get(&format!(
@@ -3301,7 +3315,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about a list of feed generators
+  /// Get information about a list of feed generators.
 
   pub fn app_bsky_feed_getfeedgenerators(
     &self,
@@ -3324,7 +3338,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A skeleton of a feed provided by a feed generator
+  /// Get a skeleton of a feed provided by a feed generator.
 
   pub fn app_bsky_feed_getfeedskeleton(
     &self,
@@ -3356,6 +3370,8 @@ impl Client {
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
+
+  /// Get the list of likes.
 
   pub fn app_bsky_feed_getlikes(
     &self,
@@ -3395,7 +3411,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A view of a recent posts from actors in a list
+  /// Get a view of a recent posts from actors in a list.
 
   pub fn app_bsky_feed_getlistfeed(
     &self,
@@ -3427,6 +3443,8 @@ impl Client {
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
+
+  /// Get posts in a thread.
 
   pub fn app_bsky_feed_getpostthread(
     &self,
@@ -3461,7 +3479,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A view of an actor&#39;s feed.
+  /// Get a view of an actor&#39;s feed.
 
   pub fn app_bsky_feed_getposts(&self, uris: &[&str]) -> Result<AppBskyFeedGetposts> {
     let mut req = self.agent.get(&format!(
@@ -3480,6 +3498,8 @@ impl Client {
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
+
+  /// Get a list of reposts.
 
   pub fn app_bsky_feed_getrepostedby(
     &self,
@@ -3549,7 +3569,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A view of the user&#39;s home timeline.
+  /// Get a view of the actor&#39;s home timeline.
 
   pub fn app_bsky_feed_gettimeline(
     &self,
@@ -3584,7 +3604,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find posts matching search criteria
+  /// Find posts matching search criteria.
 
   pub fn app_bsky_feed_searchposts(
     &self,
@@ -3617,7 +3637,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Who is the requester&#39;s account blocking?
+  /// Get a list of who the actor is blocking.
 
   pub fn app_bsky_graph_getblocks(
     &self,
@@ -3647,7 +3667,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Who is following an actor?
+  /// Get a list of an actor&#39;s followers.
 
   pub fn app_bsky_graph_getfollowers(
     &self,
@@ -3680,7 +3700,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Who is an actor following?
+  /// Get a list of who the actor follows.
 
   pub fn app_bsky_graph_getfollows(
     &self,
@@ -3713,7 +3733,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Fetch a list of actors
+  /// Get a list of actors.
 
   pub fn app_bsky_graph_getlist(
     &self,
@@ -3746,7 +3766,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Which lists is the requester&#39;s account blocking?
+  /// Get lists that the actor is blocking.
 
   pub fn app_bsky_graph_getlistblocks(
     &self,
@@ -3776,7 +3796,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Which lists is the requester&#39;s account muting?
+  /// Get lists that the actor is muting.
 
   pub fn app_bsky_graph_getlistmutes(
     &self,
@@ -3806,7 +3826,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Fetch a list of lists that belong to an actor
+  /// Get a list of lists that belong to an actor.
 
   pub fn app_bsky_graph_getlists(
     &self,
@@ -3839,7 +3859,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Who does the viewer mute?
+  /// Get a list of who the actor mutes.
 
   pub fn app_bsky_graph_getmutes(
     &self,
@@ -3890,6 +3910,8 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Get the count of unread notifications.
+
   pub fn app_bsky_notification_getunreadcount(
     &self,
     seen_at: Option<&DateTime<Utc>>,
@@ -3912,6 +3934,8 @@ impl Client {
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
+
+  /// Get a list of notifications.
 
   pub fn app_bsky_notification_listnotifications(
     &self,
@@ -3948,7 +3972,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// DEPRECATED: will be removed soon, please find a feed generator alternative
+  /// DEPRECATED: will be removed soon. Use a feed generator alternative.
 
   pub fn app_bsky_unspecced_getpopular(
     &self,
@@ -3985,7 +4009,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// An unspecced view of globally popular feed generators
+  /// An unspecced view of globally popular feed generators.
 
   pub fn app_bsky_unspecced_getpopularfeedgenerators(
     &self,
@@ -4020,7 +4044,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// A skeleton of a timeline - UNSPECCED &amp; WILL GO AWAY SOON
+  /// DEPRECATED: a skeleton of a timeline. Unspecced and will be unavailable soon.
 
   pub fn app_bsky_unspecced_gettimelineskeleton(
     &self,
@@ -4050,7 +4074,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Backend Actors (profile) search, returning only skeleton
+  /// Backend Actors (profile) search, returns only skeleton.
 
   pub fn app_bsky_unspecced_searchactorsskeleton(
     &self,
@@ -4090,7 +4114,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Backend Posts search, returning only skeleton
+  /// Backend Posts search, returns only skeleton
 
   pub fn app_bsky_unspecced_searchpostsskeleton(
     &self,
@@ -4123,7 +4147,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// View details about an account.
+  /// Get details about an account.
 
   pub fn com_atproto_admin_getaccountinfo(
     &self,
@@ -4144,7 +4168,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Admin view of invite codes
+  /// Get an admin view of invite codes.
 
   pub fn com_atproto_admin_getinvitecodes(
     &self,
@@ -4179,7 +4203,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// View details about a moderation action.
+  /// Get details about a moderation action.
 
   pub fn com_atproto_admin_getmoderationaction(
     &self,
@@ -4202,7 +4226,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// List moderation actions related to a subject.
+  /// Get a list of moderation actions related to a subject.
 
   pub fn com_atproto_admin_getmoderationactions(
     &self,
@@ -4237,7 +4261,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// View details about a moderation report.
+  /// Get details about a moderation report.
 
   pub fn com_atproto_admin_getmoderationreport(
     &self,
@@ -4260,7 +4284,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// List moderation reports related to a subject.
+  /// Get moderation reports related to a subject.
 
   pub fn com_atproto_admin_getmoderationreports(
     &self,
@@ -4333,7 +4357,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// View details about a record.
+  /// Get details about a record.
 
   pub fn com_atproto_admin_getrecord(
     &self,
@@ -4361,7 +4385,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// View details about a repository.
+  /// Get details about a repository.
 
   pub fn com_atproto_admin_getrepo(&self, did: &str) -> Result<ComAtprotoAdminDefsRepoviewdetail> {
     let mut req = self.agent.get(&format!(
@@ -4379,7 +4403,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Fetch the service-specific the admin status of a subject (account, record, or blob)
+  /// Get the service-specific admin status of a subject (account, record, or blob).
 
   pub fn com_atproto_admin_getsubjectstatus(
     &self,
@@ -4639,7 +4663,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Get all invite codes for a given account
+  /// Get all invite codes for a given account.
 
   pub fn com_atproto_server_getaccountinvitecodes(
     &self,
@@ -4685,7 +4709,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// List all app-specific passwords.
+  /// List all App Passwords.
 
   pub fn com_atproto_server_listapppasswords(&self) -> Result<ComAtprotoServerListapppasswords> {
     let mut req = self.agent.get(&format!(
@@ -4727,7 +4751,7 @@ impl Client {
     Ok(ret)
   }
 
-  /// Gets blocks from a given repo.
+  /// Get blocks from a given repo.
 
   pub fn com_atproto_sync_getblocks(&self, did: &str, cids: &[&CidString]) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
@@ -4799,7 +4823,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Gets the current commit CID &amp; revision of the repo.
+  /// Get the current commit CID &amp; revision of the repo.
 
   pub fn com_atproto_sync_getlatestcommit(
     &self,
@@ -4820,7 +4844,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Gets blocks needed for existence or non-existence of record.
+  /// Get blocks needed for existence or non-existence of record.
 
   pub fn com_atproto_sync_getrecord(
     &self,
@@ -4861,7 +4885,7 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
+  /// Gets the DID&#39;s repo, optionally catching up from a specific revision.
 
   pub fn com_atproto_sync_getrepo(&self, did: &str, since: Option<&str>) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
@@ -4890,7 +4914,7 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// List blob cids since some revision
+  /// List blob CIDs since some revision.
 
   pub fn com_atproto_sync_listblobs(
     &self,
@@ -4928,7 +4952,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// List dids and root cids of hosted repos
+  /// List DIDs and root CIDs of hosted repos.
 
   pub fn com_atproto_sync_listrepos(
     &self,
@@ -4958,7 +4982,39 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Sets the private preferences attached to the account.
+  /// Fetch all labels from a labeler created after a certain date.
+
+  pub fn com_atproto_temp_fetchlabels(
+    &self,
+    since: Option<i64>,
+    limit: Option<i64>,
+  ) -> Result<ComAtprotoTempFetchlabels> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.temp.fetchLabels",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    let since_value = serde_json::to_string(&since)?;
+
+    if since.is_some() {
+      _q.push(("since", since_value.as_str()));
+    }
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Set the private preferences attached to the account.
 
   pub fn app_bsky_actor_putpreferences(
     &self,
@@ -4979,7 +5035,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Mute an actor by did or handle.
+  /// Mute an actor by DID or handle.
 
   pub fn app_bsky_graph_muteactor(&self, actor: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5015,7 +5071,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Unmute an actor by did or handle.
+  /// Unmute an actor by DID or handle.
 
   pub fn app_bsky_graph_unmuteactor(&self, actor: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5051,7 +5107,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Register for push notifications with a service
+  /// Register for push notifications with a service.
 
   pub fn app_bsky_notification_registerpush(
     &self,
@@ -5102,7 +5158,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Disable an account from receiving new invite codes, but does not invalidate existing codes
+  /// Disable an account from receiving new invite codes, but does not invalidate existing codes.
 
   pub fn com_atproto_admin_disableaccountinvites(
     &self,
@@ -5128,7 +5184,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Disable some set of codes and/or all codes associated with a set of users
+  /// Disable some set of codes and/or all codes associated with a set of users.
 
   pub fn com_atproto_admin_disableinvitecodes(
     &self,
@@ -5156,7 +5212,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Re-enable an accounts ability to receive invite codes
+  /// Re-enable an account&#39;s ability to receive invite codes.
 
   pub fn com_atproto_admin_enableaccountinvites(
     &self,
@@ -5236,7 +5292,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Send email to a user&#39;s primary email address
+  /// Send email to a user&#39;s account email address.
 
   pub fn com_atproto_admin_sendemail(
     &self,
@@ -5265,7 +5321,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Take a moderation action on a repo.
+  /// Take a moderation action on an actor.
 
   pub fn com_atproto_admin_takemoderationaction(
     &self,
@@ -5315,7 +5371,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Administrative action to update an account&#39;s email
+  /// Administrative action to update an account&#39;s email.
 
   pub fn com_atproto_admin_updateaccountemail(
     &self,
@@ -5339,7 +5395,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Administrative action to update an account&#39;s handle
+  /// Administrative action to update an account&#39;s handle.
 
   pub fn com_atproto_admin_updateaccounthandle(
     &self,
@@ -5363,7 +5419,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Update the service-specific admin status of a subject (account, record, or blob)
+  /// Update the service-specific admin status of a subject (account, record, or blob).
 
   pub fn com_atproto_admin_updatesubjectstatus(
     &self,
@@ -5389,7 +5445,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Updates the handle of the account
+  /// Updates the handle of the account.
 
   pub fn com_atproto_identity_updatehandle(&self, handle: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5688,7 +5744,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Create an app-specific password.
+  /// Create an App Password.
 
   pub fn com_atproto_server_createapppassword(
     &self,
@@ -5735,7 +5791,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Create an invite code.
+  /// Create invite codes.
 
   pub fn com_atproto_server_createinvitecodes(
     &self,
@@ -5788,7 +5844,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Delete a user account with a token and password.
+  /// Delete an actor&#39;s account with a token and password.
 
   pub fn com_atproto_server_deleteaccount(
     &self,
@@ -5857,7 +5913,7 @@ impl Client {
     Ok(req.call()?)
   }
 
-  /// Request an email with a code to confirm ownership of email
+  /// Request an email with a code to confirm ownership of email.
 
   pub fn com_atproto_server_requestemailconfirmation(&self) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5952,7 +6008,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Revoke an app-specific password by name.
+  /// Revoke an App Password by name.
 
   pub fn com_atproto_server_revokeapppassword(&self, name: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5996,7 +6052,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Notify a crawling service of a recent update. Often when a long break between updates causes the connection with the crawling service to break.
+  /// Notify a crawling service of a recent update; often when a long break between updates causes the connection with the crawling service to break.
 
   pub fn com_atproto_sync_notifyofupdate(&self, hostname: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -6032,7 +6088,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Subscribe to label updates
+  /// Subscribe to label updates.
   pub fn com_atproto_label_subscribelabels(
     &self,
     cursor: Option<i64>,
@@ -6055,7 +6111,7 @@ impl Client {
     Ok(tungstenite::connect(&url)?.0)
   }
 
-  /// Subscribe to repo updates
+  /// Subscribe to repo updates.
   pub fn com_atproto_sync_subscriberepos(
     &self,
     cursor: Option<i64>,
