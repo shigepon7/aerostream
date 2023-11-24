@@ -33,6 +33,7 @@ pub struct AppBskyActorDefsPreferences(Vec<AppBskyActorDefsPreferencesItem>);
 pub struct AppBskyActorDefsProfileviewbasic {
   pub did: String,
   pub handle: String,
+  #[serde(rename = "displayName")]
   pub display_name: Option<String>,
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
@@ -47,9 +48,11 @@ pub struct AppBskyActorDefsProfileviewbasic {
 pub struct AppBskyActorDefsProfileview {
   pub did: String,
   pub handle: String,
+  #[serde(rename = "displayName")]
   pub display_name: Option<String>,
   pub description: Option<String>,
   pub avatar: Option<String>,
+  #[serde(rename = "indexedAt")]
   pub indexed_at: Option<DateTime<Utc>>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
@@ -63,13 +66,18 @@ pub struct AppBskyActorDefsProfileview {
 pub struct AppBskyActorDefsProfileviewdetailed {
   pub did: String,
   pub handle: String,
+  #[serde(rename = "displayName")]
   pub display_name: Option<String>,
   pub description: Option<String>,
   pub avatar: Option<String>,
   pub banner: Option<String>,
+  #[serde(rename = "followersCount")]
   pub followers_count: Option<i64>,
+  #[serde(rename = "followsCount")]
   pub follows_count: Option<i64>,
+  #[serde(rename = "postsCount")]
   pub posts_count: Option<i64>,
+  #[serde(rename = "indexedAt")]
   pub indexed_at: Option<DateTime<Utc>>,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
@@ -82,11 +90,15 @@ pub struct AppBskyActorDefsProfileviewdetailed {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsViewerstate {
   pub muted: Option<bool>,
+  #[serde(rename = "mutedByList")]
   pub muted_by_list: Option<AppBskyGraphDefsListviewbasic>,
+  #[serde(rename = "blockedBy")]
   pub blocked_by: Option<bool>,
   pub blocking: Option<String>,
+  #[serde(rename = "blockingByList")]
   pub blocking_by_list: Option<AppBskyGraphDefsListviewbasic>,
   pub following: Option<String>,
+  #[serde(rename = "followedBy")]
   pub followed_by: Option<String>,
 
   #[serde(flatten)]
@@ -125,6 +137,7 @@ pub struct AppBskyActorDefsSavedfeedspref {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsPersonaldetailspref {
+  #[serde(rename = "birthDate")]
   pub birth_date: Option<DateTime<Utc>>,
 
   #[serde(flatten)]
@@ -135,10 +148,15 @@ pub struct AppBskyActorDefsPersonaldetailspref {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsFeedviewpref {
   pub feed: String,
+  #[serde(rename = "hideReplies")]
   pub hide_replies: Option<bool>,
+  #[serde(rename = "hideRepliesByUnfollowed")]
   pub hide_replies_by_unfollowed: Option<bool>,
+  #[serde(rename = "hideRepliesByLikeCount")]
   pub hide_replies_by_like_count: Option<i64>,
+  #[serde(rename = "hideReposts")]
   pub hide_reposts: Option<bool>,
+  #[serde(rename = "hideQuotePosts")]
   pub hide_quote_posts: Option<bool>,
 
   #[serde(flatten)]
@@ -149,6 +167,7 @@ pub struct AppBskyActorDefsFeedviewpref {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsThreadviewpref {
   pub sort: Option<String>,
+  #[serde(rename = "prioritizeFollowedUsers")]
   pub prioritize_followed_users: Option<bool>,
 
   #[serde(flatten)]
@@ -211,6 +230,7 @@ pub struct AppBskyEmbedImages {
 pub struct AppBskyEmbedImagesImage {
   pub image: Blob,
   pub alt: String,
+  #[serde(rename = "aspectRatio")]
   pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
 
   #[serde(flatten)]
@@ -243,6 +263,7 @@ pub struct AppBskyEmbedImagesViewimage {
   pub thumb: String,
   pub fullsize: String,
   pub alt: String,
+  #[serde(rename = "aspectRatio")]
   pub aspect_ratio: Option<AppBskyEmbedImagesAspectratio>,
 
   #[serde(flatten)]
@@ -335,8 +356,11 @@ pub struct AppBskyFeedDefsPostview {
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
   pub embed: Option<AppBskyFeedDefsPostviewEmbed>,
+  #[serde(rename = "replyCount")]
   pub reply_count: Option<i64>,
+  #[serde(rename = "repostCount")]
   pub repost_count: Option<i64>,
+  #[serde(rename = "likeCount")]
   pub like_count: Option<i64>,
   pub viewer: Option<AppBskyFeedDefsViewerstate>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
@@ -435,6 +459,7 @@ pub struct AppBskyFeedDefsBlockedauthor {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDefsViewerthreadstate {
+  #[serde(rename = "canReply")]
   pub can_reply: Option<bool>,
 
   #[serde(flatten)]
@@ -453,8 +478,10 @@ pub struct AppBskyFeedDefsGeneratorview {
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
   pub description: Option<String>,
+  #[serde(rename = "descriptionFacets")]
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<String>,
+  #[serde(rename = "likeCount")]
   pub like_count: Option<i64>,
   pub viewer: Option<AppBskyFeedDefsGeneratorviewerstate>,
 
@@ -514,7 +541,9 @@ pub struct AppBskyFeedDescribefeedgeneratorFeed {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDescribefeedgeneratorLinks {
+  #[serde(rename = "privacyPolicy")]
   pub privacy_policy: Option<String>,
+  #[serde(rename = "termsOfService")]
   pub terms_of_service: Option<String>,
 
   #[serde(flatten)]
@@ -603,6 +632,7 @@ pub struct AppBskyGraphDefsListviewbasic {
   pub purpose: AppBskyGraphDefsListpurpose,
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyGraphDefsListviewerstate>,
+  #[serde(rename = "indexedAt")]
   pub indexed_at: Option<DateTime<Utc>>,
 
   #[serde(flatten)]
@@ -620,6 +650,7 @@ pub struct AppBskyGraphDefsListview {
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
   pub description: Option<String>,
+  #[serde(rename = "descriptionFacets")]
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<String>,
   pub viewer: Option<AppBskyGraphDefsListviewerstate>,
@@ -659,6 +690,7 @@ pub struct AppBskyNotificationListnotificationsNotification {
   pub is_read: bool,
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
+  #[serde(rename = "reasonSubject")]
   pub reason_subject: Option<String>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
 
@@ -741,6 +773,7 @@ pub struct AppBskyUnspeccedDefsSkeletonsearchactor {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsStatusattr {
   pub applied: bool,
+  #[serde(rename = "r#ref")]
   pub r_ref: Option<String>,
 
   #[serde(flatten)]
@@ -762,8 +795,11 @@ pub struct ComAtprotoAdminDefsActionview {
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedReportIds")]
   pub resolved_report_ids: Vec<i64>,
+  #[serde(rename = "durationInHours")]
   pub duration_in_hours: Option<i64>,
+  #[serde(rename = "createLabelVals")]
   pub create_label_vals: Option<Vec<String>>,
+  #[serde(rename = "negateLabelVals")]
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
 
@@ -786,8 +822,11 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedReports")]
   pub resolved_reports: Vec<ComAtprotoAdminDefsReportview>,
+  #[serde(rename = "durationInHours")]
   pub duration_in_hours: Option<i64>,
+  #[serde(rename = "createLabelVals")]
   pub create_label_vals: Option<Vec<String>>,
+  #[serde(rename = "negateLabelVals")]
   pub negate_label_vals: Option<Vec<String>>,
   pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
 
@@ -800,6 +839,7 @@ pub struct ComAtprotoAdminDefsActionviewdetail {
 pub struct ComAtprotoAdminDefsActionviewcurrent {
   pub id: i64,
   pub action: ComAtprotoAdminDefsActiontype,
+  #[serde(rename = "durationInHours")]
   pub duration_in_hours: Option<i64>,
 
   #[serde(flatten)]
@@ -833,6 +873,7 @@ pub struct ComAtprotoAdminDefsReportview {
   #[serde(rename = "resolvedByActionIds")]
   pub resolved_by_action_ids: Vec<i64>,
   pub reason: Option<String>,
+  #[serde(rename = "subjectRepoHandle")]
   pub subject_repo_handle: Option<String>,
 
   #[serde(flatten)]
@@ -869,8 +910,11 @@ pub struct ComAtprotoAdminDefsRepoview {
   pub indexed_at: DateTime<Utc>,
   pub moderation: ComAtprotoAdminDefsModeration,
   pub email: Option<String>,
+  #[serde(rename = "invitedBy")]
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
+  #[serde(rename = "invitesDisabled")]
   pub invites_disabled: Option<bool>,
+  #[serde(rename = "inviteNote")]
   pub invite_note: Option<String>,
 
   #[serde(flatten)]
@@ -889,10 +933,14 @@ pub struct ComAtprotoAdminDefsRepoviewdetail {
   pub moderation: ComAtprotoAdminDefsModerationdetail,
   pub email: Option<String>,
   pub labels: Option<Vec<ComAtprotoLabelDefsLabel>>,
+  #[serde(rename = "invitedBy")]
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
+  #[serde(rename = "invitesDisabled")]
   pub invites_disabled: Option<bool>,
+  #[serde(rename = "inviteNote")]
   pub invite_note: Option<String>,
+  #[serde(rename = "emailConfirmedAt")]
   pub email_confirmed_at: Option<DateTime<Utc>>,
 
   #[serde(flatten)]
@@ -907,10 +955,14 @@ pub struct ComAtprotoAdminDefsAccountview {
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
   pub email: Option<String>,
+  #[serde(rename = "invitedBy")]
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
+  #[serde(rename = "invitesDisabled")]
   pub invites_disabled: Option<bool>,
+  #[serde(rename = "emailConfirmedAt")]
   pub email_confirmed_at: Option<DateTime<Utc>>,
+  #[serde(rename = "inviteNote")]
   pub invite_note: Option<String>,
 
   #[serde(flatten)]
@@ -940,6 +992,7 @@ pub struct ComAtprotoAdminDefsReporef {
 pub struct ComAtprotoAdminDefsRepoblobref {
   pub did: String,
   pub cid: CidString,
+  #[serde(rename = "recordUri")]
   pub record_uri: Option<String>,
 
   #[serde(flatten)]
@@ -992,6 +1045,7 @@ pub struct ComAtprotoAdminDefsRecordviewnotfound {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsModeration {
+  #[serde(rename = "currentAction")]
   pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
 
   #[serde(flatten)]
@@ -1003,6 +1057,7 @@ pub struct ComAtprotoAdminDefsModeration {
 pub struct ComAtprotoAdminDefsModerationdetail {
   pub actions: Vec<ComAtprotoAdminDefsActionview>,
   pub reports: Vec<ComAtprotoAdminDefsReportview>,
+  #[serde(rename = "currentAction")]
   pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
 
   #[serde(flatten)]
@@ -1212,7 +1267,9 @@ pub struct ComAtprotoServerDefsInvitecodeuse {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoServerDescribeserverLinks {
+  #[serde(rename = "privacyPolicy")]
   pub privacy_policy: Option<String>,
+  #[serde(rename = "termsOfService")]
   pub terms_of_service: Option<String>,
 
   #[serde(flatten)]
@@ -1324,6 +1381,7 @@ pub struct ComAtprotoSyncSubscribereposRepoop {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorProfile {
+  #[serde(rename = "displayName")]
   pub display_name: Option<String>,
   pub description: Option<String>,
   pub avatar: Option<Blob>,
@@ -1341,6 +1399,7 @@ pub struct AppBskyFeedGenerator {
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
   pub description: Option<String>,
+  #[serde(rename = "descriptionFacets")]
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<Blob>,
   pub labels: Option<AppBskyFeedGeneratorMainLabels>,
@@ -1417,6 +1476,7 @@ pub struct AppBskyGraphList {
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
   pub description: Option<String>,
+  #[serde(rename = "descriptionFacets")]
   pub description_facets: Option<Vec<AppBskyRichtextFacet>>,
   pub avatar: Option<Blob>,
   pub labels: Option<AppBskyGraphListMainLabels>,
@@ -1837,21 +1897,23 @@ pub struct Link {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Blob {
   #[serde(rename = "$type")]
-  pub blob_type: String,
+  pub blob_type: Option<String>,
   #[serde(rename = "ref")]
-  pub blob_ref: Link,
+  pub blob_ref: Option<Link>,
   #[serde(rename = "mimeType")]
   pub mime_type: String,
-  pub size: i64,
+  pub size: Option<i64>,
+  pub cid: Option<String>,
 }
 
 impl Default for Blob {
   fn default() -> Self {
     Self {
-      blob_type: String::from("blob"),
-      blob_ref: Link::default(),
+      blob_type: Some(String::from("blob")),
+      blob_ref: Some(Link::default()),
       mime_type: String::new(),
-      size: 0,
+      size: Some(0),
+      cid: None,
     }
   }
 }
@@ -2004,6 +2066,7 @@ pub struct AppBskyFeedGettimeline {
 pub struct AppBskyFeedSearchposts {
   pub posts: Vec<AppBskyFeedDefsPostview>,
   pub cursor: Option<String>,
+  #[serde(rename = "hitsTotal")]
   pub hits_total: Option<i64>,
 }
 
@@ -2111,6 +2174,7 @@ pub struct AppBskyUnspeccedGettimelineskeleton {
 pub struct AppBskyUnspeccedSearchactorsskeleton {
   pub actors: Vec<AppBskyUnspeccedDefsSkeletonsearchactor>,
   pub cursor: Option<String>,
+  #[serde(rename = "hitsTotal")]
   pub hits_total: Option<i64>,
 }
 
@@ -2119,6 +2183,7 @@ pub struct AppBskyUnspeccedSearchactorsskeleton {
 pub struct AppBskyUnspeccedSearchpostsskeleton {
   pub posts: Vec<AppBskyUnspeccedDefsSkeletonsearchpost>,
   pub cursor: Option<String>,
+  #[serde(rename = "hitsTotal")]
   pub hits_total: Option<i64>,
 }
 
@@ -2202,6 +2267,7 @@ pub struct ComAtprotoRepoListrecords {
 pub struct ComAtprotoServerDescribeserver {
   #[serde(rename = "availableUserDomains")]
   pub available_user_domains: Vec<String>,
+  #[serde(rename = "inviteCodeRequired")]
   pub invite_code_required: Option<bool>,
   pub links: Option<ComAtprotoServerDescribeserverLinks>,
 }
@@ -2218,7 +2284,9 @@ pub struct ComAtprotoServerGetsession {
   pub handle: String,
   pub did: String,
   pub email: Option<String>,
+  #[serde(rename = "emailConfirmed")]
   pub email_confirmed: Option<bool>,
+  #[serde(rename = "didDoc")]
   pub did_doc: Option<DidDoc>,
 }
 
@@ -2317,6 +2385,7 @@ pub struct ComAtprotoServerCreateaccount {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  #[serde(rename = "didDoc")]
   pub did_doc: Option<DidDoc>,
 }
 
@@ -2341,8 +2410,10 @@ pub struct ComAtprotoServerCreatesession {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  #[serde(rename = "didDoc")]
   pub did_doc: Option<DidDoc>,
   pub email: Option<String>,
+  #[serde(rename = "emailConfirmed")]
   pub email_confirmed: Option<bool>,
 }
 
@@ -2355,6 +2426,7 @@ pub struct ComAtprotoServerRefreshsession {
   pub refresh_jwt: String,
   pub handle: String,
   pub did: String,
+  #[serde(rename = "didDoc")]
   pub did_doc: Option<DidDoc>,
 }
 

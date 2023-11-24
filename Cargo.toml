@@ -4,7 +4,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "aerostream"
 repository = "https://github.com/shigepon7/aerostream"
-version = "0.13.2"
+version = "0.13.3"
 
 [[bin]]
 name = "aerostream"
