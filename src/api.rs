@@ -20,7 +20,7 @@ use url::Url;
 pub struct AppBskyGraphDefsListpurpose(String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActiontype(String);
+pub struct ComAtprotoAdminDefsSubjectreviewstate(String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoModerationDefsReasontype(String);
@@ -375,6 +375,8 @@ pub struct AppBskyFeedDefsPostview {
 pub struct AppBskyFeedDefsViewerstate {
   pub repost: Option<String>,
   pub like: Option<String>,
+  #[serde(rename = "replyDisabled")]
+  pub reply_disabled: Option<bool>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -418,7 +420,6 @@ pub struct AppBskyFeedDefsThreadviewpost {
   pub post: AppBskyFeedDefsPostview,
   pub parent: Option<AppBskyFeedDefsThreadviewpostParent>,
   pub replies: Option<Vec<AppBskyFeedDefsThreadviewpostRepliesItem>>,
-  pub viewer: Option<AppBskyFeedDefsViewerthreadstate>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -451,16 +452,6 @@ pub struct AppBskyFeedDefsBlockedpost {
 pub struct AppBskyFeedDefsBlockedauthor {
   pub did: String,
   pub viewer: Option<AppBskyActorDefsViewerstate>,
-
-  #[serde(flatten)]
-  pub extra: HashMap<String, Value>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct AppBskyFeedDefsViewerthreadstate {
-  #[serde(rename = "canReply")]
-  pub can_reply: Option<bool>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -662,6 +653,7 @@ pub struct AppBskyGraphDefsListview {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphDefsListitemview {
+  pub uri: String,
   pub subject: AppBskyActorDefsProfileview,
 
   #[serde(flatten)]
@@ -782,26 +774,20 @@ pub struct ComAtprotoAdminDefsStatusattr {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActionview {
+pub struct ComAtprotoAdminDefsModeventview {
   pub id: i64,
-  pub action: ComAtprotoAdminDefsActiontype,
-  pub subject: ComAtprotoAdminDefsActionviewSubject,
+  pub event: ComAtprotoAdminDefsModeventviewEvent,
+  pub subject: ComAtprotoAdminDefsModeventviewSubject,
   #[serde(rename = "subjectBlobCids")]
   pub subject_blob_cids: Vec<String>,
-  pub reason: String,
   #[serde(rename = "createdBy")]
   pub created_by: String,
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
-  #[serde(rename = "resolvedReportIds")]
-  pub resolved_report_ids: Vec<i64>,
-  #[serde(rename = "durationInHours")]
-  pub duration_in_hours: Option<i64>,
-  #[serde(rename = "createLabelVals")]
-  pub create_label_vals: Option<Vec<String>>,
-  #[serde(rename = "negateLabelVals")]
-  pub negate_label_vals: Option<Vec<String>>,
-  pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
+  #[serde(rename = "creatorHandle")]
+  pub creator_handle: Option<String>,
+  #[serde(rename = "subjectHandle")]
+  pub subject_handle: Option<String>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -809,47 +795,12 @@ pub struct ComAtprotoAdminDefsActionview {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActionviewdetail {
+pub struct ComAtprotoAdminDefsModeventviewdetail {
   pub id: i64,
-  pub action: ComAtprotoAdminDefsActiontype,
-  pub subject: ComAtprotoAdminDefsActionviewdetailSubject,
+  pub event: ComAtprotoAdminDefsModeventviewdetailEvent,
+  pub subject: ComAtprotoAdminDefsModeventviewdetailSubject,
   #[serde(rename = "subjectBlobs")]
   pub subject_blobs: Vec<ComAtprotoAdminDefsBlobview>,
-  pub reason: String,
-  #[serde(rename = "createdBy")]
-  pub created_by: String,
-  #[serde(rename = "createdAt")]
-  pub created_at: DateTime<Utc>,
-  #[serde(rename = "resolvedReports")]
-  pub resolved_reports: Vec<ComAtprotoAdminDefsReportview>,
-  #[serde(rename = "durationInHours")]
-  pub duration_in_hours: Option<i64>,
-  #[serde(rename = "createLabelVals")]
-  pub create_label_vals: Option<Vec<String>>,
-  #[serde(rename = "negateLabelVals")]
-  pub negate_label_vals: Option<Vec<String>>,
-  pub reversal: Option<ComAtprotoAdminDefsActionreversal>,
-
-  #[serde(flatten)]
-  pub extra: HashMap<String, Value>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActionviewcurrent {
-  pub id: i64,
-  pub action: ComAtprotoAdminDefsActiontype,
-  #[serde(rename = "durationInHours")]
-  pub duration_in_hours: Option<i64>,
-
-  #[serde(flatten)]
-  pub extra: HashMap<String, Value>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-pub struct ComAtprotoAdminDefsActionreversal {
-  pub reason: String,
   #[serde(rename = "createdBy")]
   pub created_by: String,
   #[serde(rename = "createdAt")]
@@ -872,9 +823,41 @@ pub struct ComAtprotoAdminDefsReportview {
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedByActionIds")]
   pub resolved_by_action_ids: Vec<i64>,
-  pub reason: Option<String>,
+  pub comment: Option<String>,
   #[serde(rename = "subjectRepoHandle")]
   pub subject_repo_handle: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsSubjectstatusview {
+  pub id: i64,
+  pub subject: ComAtprotoAdminDefsSubjectstatusviewSubject,
+  #[serde(rename = "updatedAt")]
+  pub updated_at: DateTime<Utc>,
+  #[serde(rename = "createdAt")]
+  pub created_at: DateTime<Utc>,
+  #[serde(rename = "reviewState")]
+  pub review_state: ComAtprotoAdminDefsSubjectreviewstate,
+  #[serde(rename = "subjectBlobCids")]
+  pub subject_blob_cids: Option<Vec<CidString>>,
+  #[serde(rename = "subjectRepoHandle")]
+  pub subject_repo_handle: Option<String>,
+  pub comment: Option<String>,
+  #[serde(rename = "muteUntil")]
+  pub mute_until: Option<DateTime<Utc>>,
+  #[serde(rename = "lastReviewedBy")]
+  pub last_reviewed_by: Option<String>,
+  #[serde(rename = "lastReviewedAt")]
+  pub last_reviewed_at: Option<DateTime<Utc>>,
+  #[serde(rename = "lastReportedAt")]
+  pub last_reported_at: Option<DateTime<Utc>>,
+  pub takendown: Option<bool>,
+  #[serde(rename = "suspendUntil")]
+  pub suspend_until: Option<DateTime<Utc>>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -892,8 +875,10 @@ pub struct ComAtprotoAdminDefsReportviewdetail {
   #[serde(rename = "createdAt")]
   pub created_at: DateTime<Utc>,
   #[serde(rename = "resolvedByActions")]
-  pub resolved_by_actions: Vec<ComAtprotoAdminDefsActionview>,
-  pub reason: Option<String>,
+  pub resolved_by_actions: Vec<ComAtprotoAdminDefsModeventview>,
+  pub comment: Option<String>,
+  #[serde(rename = "subjectStatus")]
+  pub subject_status: Option<ComAtprotoAdminDefsSubjectstatusview>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -1045,8 +1030,8 @@ pub struct ComAtprotoAdminDefsRecordviewnotfound {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsModeration {
-  #[serde(rename = "currentAction")]
-  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+  #[serde(rename = "subjectStatus")]
+  pub subject_status: Option<ComAtprotoAdminDefsSubjectstatusview>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -1055,10 +1040,8 @@ pub struct ComAtprotoAdminDefsModeration {
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsModerationdetail {
-  pub actions: Vec<ComAtprotoAdminDefsActionview>,
-  pub reports: Vec<ComAtprotoAdminDefsReportview>,
-  #[serde(rename = "currentAction")]
-  pub current_action: Option<ComAtprotoAdminDefsActionviewcurrent>,
+  #[serde(rename = "subjectStatus")]
+  pub subject_status: Option<ComAtprotoAdminDefsSubjectstatusview>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -1096,6 +1079,116 @@ pub struct ComAtprotoAdminDefsVideodetails {
   pub width: i64,
   pub height: i64,
   pub length: i64,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Take down a subject permanently or temporarily
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventtakedown {
+  pub comment: Option<String>,
+  #[serde(rename = "durationInHours")]
+  pub duration_in_hours: Option<i64>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Revert take down action on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventreversetakedown {
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Add a comment to a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventcomment {
+  pub comment: String,
+  pub sticky: Option<bool>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Report a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventreport {
+  #[serde(rename = "reportType")]
+  pub report_type: ComAtprotoModerationDefsReasontype,
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Apply/Negate labels on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventlabel {
+  #[serde(rename = "createLabelVals")]
+  pub create_label_vals: Vec<String>,
+  #[serde(rename = "negateLabelVals")]
+  pub negate_label_vals: Vec<String>,
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventacknowledge {
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventescalate {
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Mute incoming reports on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventmute {
+  #[serde(rename = "durationInHours")]
+  pub duration_in_hours: i64,
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Unmute action on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventunmute {
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Keep a log of outgoing email to a user
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventemail {
+  #[serde(rename = "subjectLine")]
+  pub subject_line: String,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -2146,6 +2239,8 @@ pub struct AppBskyNotificationGetunreadcount {
 pub struct AppBskyNotificationListnotifications {
   pub notifications: Vec<AppBskyNotificationListnotificationsNotification>,
   pub cursor: Option<String>,
+  #[serde(rename = "seenAt")]
+  pub seen_at: Option<DateTime<Utc>>,
 }
 
 #[skip_serializing_none]
@@ -2196,23 +2291,24 @@ pub struct ComAtprotoAdminGetinvitecodes {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComAtprotoAdminGetmoderationactions {
-  pub actions: Vec<ComAtprotoAdminDefsActionview>,
-  pub cursor: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComAtprotoAdminGetmoderationreports {
-  pub reports: Vec<ComAtprotoAdminDefsReportview>,
-  pub cursor: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminGetsubjectstatus {
   pub subject: ComAtprotoAdminGetsubjectstatusMainOutputSubject,
   pub takedown: Option<ComAtprotoAdminDefsStatusattr>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminQuerymoderationevents {
+  pub events: Vec<ComAtprotoAdminDefsModeventview>,
+  pub cursor: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminQuerymoderationstatuses {
+  #[serde(rename = "subjectStatuses")]
+  pub subject_statuses: Vec<ComAtprotoAdminDefsSubjectstatusview>,
+  pub cursor: Option<String>,
 }
 
 #[skip_serializing_none]
@@ -2442,6 +2538,17 @@ pub struct ComAtprotoServerRequestemailupdate {
 pub struct ComAtprotoServerReservesigningkey {
   #[serde(rename = "signingKey")]
   pub signing_key: String,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoTempTransferaccount {
+  #[serde(rename = "accessJwt")]
+  pub access_jwt: String,
+  #[serde(rename = "refreshJwt")]
+  pub refresh_jwt: String,
+  pub handle: String,
+  pub did: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -2776,14 +2883,45 @@ impl Default for AppBskyRichtextFacetMainFeaturesItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum ComAtprotoAdminDefsActionviewSubject {
+pub enum ComAtprotoAdminDefsModeventviewEvent {
+  #[serde(rename = "com.atproto.admin.defs#modEventTakedown")]
+  ComAtprotoAdminDefsModeventtakedown(Box<ComAtprotoAdminDefsModeventtakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReverseTakedown")]
+  ComAtprotoAdminDefsModeventreversetakedown(Box<ComAtprotoAdminDefsModeventreversetakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventComment")]
+  ComAtprotoAdminDefsModeventcomment(Box<ComAtprotoAdminDefsModeventcomment>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReport")]
+  ComAtprotoAdminDefsModeventreport(Box<ComAtprotoAdminDefsModeventreport>),
+  #[serde(rename = "com.atproto.admin.defs#modEventLabel")]
+  ComAtprotoAdminDefsModeventlabel(Box<ComAtprotoAdminDefsModeventlabel>),
+  #[serde(rename = "com.atproto.admin.defs#modEventAcknowledge")]
+  ComAtprotoAdminDefsModeventacknowledge(Box<ComAtprotoAdminDefsModeventacknowledge>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEscalate")]
+  ComAtprotoAdminDefsModeventescalate(Box<ComAtprotoAdminDefsModeventescalate>),
+  #[serde(rename = "com.atproto.admin.defs#modEventMute")]
+  ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
+  ComAtprotoAdminDefsModeventemail(Box<ComAtprotoAdminDefsModeventemail>),
+}
+
+impl Default for ComAtprotoAdminDefsModeventviewEvent {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsModeventtakedown(Box::new(
+      ComAtprotoAdminDefsModeventtakedown::default(),
+    ))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminDefsModeventviewSubject {
   #[serde(rename = "com.atproto.admin.defs#repoRef")]
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
 }
 
-impl Default for ComAtprotoAdminDefsActionviewSubject {
+impl Default for ComAtprotoAdminDefsModeventviewSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
   }
@@ -2791,7 +2929,36 @@ impl Default for ComAtprotoAdminDefsActionviewSubject {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
-pub enum ComAtprotoAdminDefsActionviewdetailSubject {
+pub enum ComAtprotoAdminDefsModeventviewdetailEvent {
+  #[serde(rename = "com.atproto.admin.defs#modEventTakedown")]
+  ComAtprotoAdminDefsModeventtakedown(Box<ComAtprotoAdminDefsModeventtakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReverseTakedown")]
+  ComAtprotoAdminDefsModeventreversetakedown(Box<ComAtprotoAdminDefsModeventreversetakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventComment")]
+  ComAtprotoAdminDefsModeventcomment(Box<ComAtprotoAdminDefsModeventcomment>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReport")]
+  ComAtprotoAdminDefsModeventreport(Box<ComAtprotoAdminDefsModeventreport>),
+  #[serde(rename = "com.atproto.admin.defs#modEventLabel")]
+  ComAtprotoAdminDefsModeventlabel(Box<ComAtprotoAdminDefsModeventlabel>),
+  #[serde(rename = "com.atproto.admin.defs#modEventAcknowledge")]
+  ComAtprotoAdminDefsModeventacknowledge(Box<ComAtprotoAdminDefsModeventacknowledge>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEscalate")]
+  ComAtprotoAdminDefsModeventescalate(Box<ComAtprotoAdminDefsModeventescalate>),
+  #[serde(rename = "com.atproto.admin.defs#modEventMute")]
+  ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
+}
+
+impl Default for ComAtprotoAdminDefsModeventviewdetailEvent {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsModeventtakedown(Box::new(
+      ComAtprotoAdminDefsModeventtakedown::default(),
+    ))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminDefsModeventviewdetailSubject {
   #[serde(rename = "com.atproto.admin.defs#repoView")]
   ComAtprotoAdminDefsRepoview(Box<ComAtprotoAdminDefsRepoview>),
   #[serde(rename = "com.atproto.admin.defs#repoViewNotFound")]
@@ -2802,7 +2969,7 @@ pub enum ComAtprotoAdminDefsActionviewdetailSubject {
   ComAtprotoAdminDefsRecordviewnotfound(Box<ComAtprotoAdminDefsRecordviewnotfound>),
 }
 
-impl Default for ComAtprotoAdminDefsActionviewdetailSubject {
+impl Default for ComAtprotoAdminDefsModeventviewdetailSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsRepoview(Box::new(ComAtprotoAdminDefsRepoview::default()))
   }
@@ -2818,6 +2985,21 @@ pub enum ComAtprotoAdminDefsReportviewSubject {
 }
 
 impl Default for ComAtprotoAdminDefsReportviewSubject {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminDefsSubjectstatusviewSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+}
+
+impl Default for ComAtprotoAdminDefsSubjectstatusviewSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
   }
@@ -2859,6 +3041,54 @@ impl Default for ComAtprotoAdminDefsBlobviewDetails {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum ComAtprotoAdminEmitmoderationeventMainInputEvent {
+  #[serde(rename = "com.atproto.admin.defs#modEventTakedown")]
+  ComAtprotoAdminDefsModeventtakedown(Box<ComAtprotoAdminDefsModeventtakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventAcknowledge")]
+  ComAtprotoAdminDefsModeventacknowledge(Box<ComAtprotoAdminDefsModeventacknowledge>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEscalate")]
+  ComAtprotoAdminDefsModeventescalate(Box<ComAtprotoAdminDefsModeventescalate>),
+  #[serde(rename = "com.atproto.admin.defs#modEventComment")]
+  ComAtprotoAdminDefsModeventcomment(Box<ComAtprotoAdminDefsModeventcomment>),
+  #[serde(rename = "com.atproto.admin.defs#modEventLabel")]
+  ComAtprotoAdminDefsModeventlabel(Box<ComAtprotoAdminDefsModeventlabel>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReport")]
+  ComAtprotoAdminDefsModeventreport(Box<ComAtprotoAdminDefsModeventreport>),
+  #[serde(rename = "com.atproto.admin.defs#modEventMute")]
+  ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
+  #[serde(rename = "com.atproto.admin.defs#modEventReverseTakedown")]
+  ComAtprotoAdminDefsModeventreversetakedown(Box<ComAtprotoAdminDefsModeventreversetakedown>),
+  #[serde(rename = "com.atproto.admin.defs#modEventUnmute")]
+  ComAtprotoAdminDefsModeventunmute(Box<ComAtprotoAdminDefsModeventunmute>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
+  ComAtprotoAdminDefsModeventemail(Box<ComAtprotoAdminDefsModeventemail>),
+}
+
+impl Default for ComAtprotoAdminEmitmoderationeventMainInputEvent {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsModeventtakedown(Box::new(
+      ComAtprotoAdminDefsModeventtakedown::default(),
+    ))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
+pub enum ComAtprotoAdminEmitmoderationeventMainInputSubject {
+  #[serde(rename = "com.atproto.admin.defs#repoRef")]
+  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
+  #[serde(rename = "com.atproto.repo.strongRef")]
+  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+}
+
+impl Default for ComAtprotoAdminEmitmoderationeventMainInputSubject {
+  fn default() -> Self {
+    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum ComAtprotoAdminGetsubjectstatusMainOutputSubject {
   #[serde(rename = "com.atproto.admin.defs#repoRef")]
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
@@ -2869,21 +3099,6 @@ pub enum ComAtprotoAdminGetsubjectstatusMainOutputSubject {
 }
 
 impl Default for ComAtprotoAdminGetsubjectstatusMainOutputSubject {
-  fn default() -> Self {
-    Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
-  }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "$type")]
-pub enum ComAtprotoAdminTakemoderationactionMainInputSubject {
-  #[serde(rename = "com.atproto.admin.defs#repoRef")]
-  ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
-  #[serde(rename = "com.atproto.repo.strongRef")]
-  ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
-}
-
-impl Default for ComAtprotoAdminTakemoderationactionMainInputSubject {
   fn default() -> Self {
     Self::ComAtprotoAdminDefsReporef(Box::new(ComAtprotoAdminDefsReporef::default()))
   }
@@ -4275,14 +4490,14 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get details about a moderation action.
+  /// Get details about a moderation event.
 
-  pub fn com_atproto_admin_getmoderationaction(
+  pub fn com_atproto_admin_getmoderationevent(
     &self,
     id: i64,
-  ) -> Result<ComAtprotoAdminDefsActionviewdetail> {
+  ) -> Result<ComAtprotoAdminDefsModeventviewdetail> {
     let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.admin.getModerationAction",
+      "https://{}/xrpc/com.atproto.admin.getModerationEvent",
       self.host
     ));
     if let Some(jwt) = &self.jwt {
@@ -4294,137 +4509,6 @@ impl Client {
     let id_value = serde_json::to_string(&id)?;
 
     _q.push(("id", id_value.as_str()));
-
-    Ok(req.query_pairs(_q).call()?.into_json()?)
-  }
-
-  /// Get a list of moderation actions related to a subject.
-
-  pub fn com_atproto_admin_getmoderationactions(
-    &self,
-    subject: Option<&str>,
-    limit: Option<i64>,
-    cursor: Option<&str>,
-  ) -> Result<ComAtprotoAdminGetmoderationactions> {
-    let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.admin.getModerationActions",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut _q = Vec::new();
-
-    if subject.is_some() {
-      _q.push(("subject", subject.unwrap_or_default()));
-    }
-
-    let limit_value = serde_json::to_string(&limit)?;
-
-    if limit.is_some() {
-      _q.push(("limit", limit_value.as_str()));
-    };
-
-    if cursor.is_some() {
-      _q.push(("cursor", cursor.unwrap_or_default()));
-    }
-
-    Ok(req.query_pairs(_q).call()?.into_json()?)
-  }
-
-  /// Get details about a moderation report.
-
-  pub fn com_atproto_admin_getmoderationreport(
-    &self,
-    id: i64,
-  ) -> Result<ComAtprotoAdminDefsReportviewdetail> {
-    let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.admin.getModerationReport",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut _q = Vec::new();
-
-    let id_value = serde_json::to_string(&id)?;
-
-    _q.push(("id", id_value.as_str()));
-
-    Ok(req.query_pairs(_q).call()?.into_json()?)
-  }
-
-  /// Get moderation reports related to a subject.
-
-  pub fn com_atproto_admin_getmoderationreports(
-    &self,
-    subject: Option<&str>,
-    ignore_subjects: Option<&[&str]>,
-    actioned_by: Option<&str>,
-    reporters: Option<&[&str]>,
-    resolved: Option<bool>,
-    action_type: Option<&str>,
-    limit: Option<i64>,
-    cursor: Option<&str>,
-    reverse: Option<bool>,
-  ) -> Result<ComAtprotoAdminGetmoderationreports> {
-    let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/com.atproto.admin.getModerationReports",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut _q = Vec::new();
-
-    if subject.is_some() {
-      _q.push(("subject", subject.unwrap_or_default()));
-    }
-
-    let ignore_subjects_value = serde_json::to_string(&ignore_subjects)?;
-
-    if ignore_subjects.is_some() {
-      _q.push(("ignore_subjects", ignore_subjects_value.as_str()));
-    };
-
-    if actioned_by.is_some() {
-      _q.push(("actioned_by", actioned_by.unwrap_or_default()));
-    }
-
-    let reporters_value = serde_json::to_string(&reporters)?;
-
-    if reporters.is_some() {
-      _q.push(("reporters", reporters_value.as_str()));
-    }
-
-    let resolved_value = serde_json::to_string(&resolved)?;
-
-    if resolved.is_some() {
-      _q.push(("resolved", resolved_value.as_str()));
-    };
-
-    if action_type.is_some() {
-      _q.push(("action_type", action_type.unwrap_or_default()));
-    }
-
-    let limit_value = serde_json::to_string(&limit)?;
-
-    if limit.is_some() {
-      _q.push(("limit", limit_value.as_str()));
-    };
-
-    if cursor.is_some() {
-      _q.push(("cursor", cursor.unwrap_or_default()));
-    }
-
-    let reverse_value = serde_json::to_string(&reverse)?;
-
-    if reverse.is_some() {
-      _q.push(("reverse", reverse_value.as_str()));
-    }
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
@@ -4505,6 +4589,177 @@ impl Client {
 
     if blob.is_some() {
       _q.push(("blob", blob_value.as_str()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// List moderation events related to a subject.
+
+  pub fn com_atproto_admin_querymoderationevents(
+    &self,
+    types: Option<&[&str]>,
+    created_by: Option<&str>,
+    sort_direction: Option<&str>,
+    subject: Option<&str>,
+    include_all_user_records: Option<bool>,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<ComAtprotoAdminQuerymoderationevents> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.queryModerationEvents",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    let types_value = serde_json::to_string(&types)?;
+
+    if types.is_some() {
+      _q.push(("types", types_value.as_str()));
+    };
+
+    if created_by.is_some() {
+      _q.push(("created_by", created_by.unwrap_or_default()));
+    };
+
+    if sort_direction.is_some() {
+      _q.push(("sort_direction", sort_direction.unwrap_or_default()));
+    };
+
+    if subject.is_some() {
+      _q.push(("subject", subject.unwrap_or_default()));
+    }
+
+    let include_all_user_records_value = serde_json::to_string(&include_all_user_records)?;
+
+    if include_all_user_records.is_some() {
+      _q.push((
+        "include_all_user_records",
+        include_all_user_records_value.as_str(),
+      ));
+    }
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// View moderation statuses of subjects (record or repo).
+
+  pub fn com_atproto_admin_querymoderationstatuses(
+    &self,
+    subject: Option<&str>,
+    comment: Option<&str>,
+    reported_after: Option<&DateTime<Utc>>,
+    reported_before: Option<&DateTime<Utc>>,
+    reviewed_after: Option<&DateTime<Utc>>,
+    reviewed_before: Option<&DateTime<Utc>>,
+    include_muted: Option<bool>,
+    review_state: Option<&str>,
+    ignore_subjects: Option<&[&str]>,
+    last_reviewed_by: Option<&str>,
+    sort_field: Option<&str>,
+    sort_direction: Option<&str>,
+    takendown: Option<bool>,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<ComAtprotoAdminQuerymoderationstatuses> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.queryModerationStatuses",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    if subject.is_some() {
+      _q.push(("subject", subject.unwrap_or_default()));
+    };
+
+    if comment.is_some() {
+      _q.push(("comment", comment.unwrap_or_default()));
+    }
+
+    let reported_after_value = serde_json::to_string(&reported_after)?;
+
+    if reported_after.is_some() {
+      _q.push(("reported_after", reported_after_value.as_str()));
+    }
+
+    let reported_before_value = serde_json::to_string(&reported_before)?;
+
+    if reported_before.is_some() {
+      _q.push(("reported_before", reported_before_value.as_str()));
+    }
+
+    let reviewed_after_value = serde_json::to_string(&reviewed_after)?;
+
+    if reviewed_after.is_some() {
+      _q.push(("reviewed_after", reviewed_after_value.as_str()));
+    }
+
+    let reviewed_before_value = serde_json::to_string(&reviewed_before)?;
+
+    if reviewed_before.is_some() {
+      _q.push(("reviewed_before", reviewed_before_value.as_str()));
+    }
+
+    let include_muted_value = serde_json::to_string(&include_muted)?;
+
+    if include_muted.is_some() {
+      _q.push(("include_muted", include_muted_value.as_str()));
+    };
+
+    if review_state.is_some() {
+      _q.push(("review_state", review_state.unwrap_or_default()));
+    }
+
+    let ignore_subjects_value = serde_json::to_string(&ignore_subjects)?;
+
+    if ignore_subjects.is_some() {
+      _q.push(("ignore_subjects", ignore_subjects_value.as_str()));
+    };
+
+    if last_reviewed_by.is_some() {
+      _q.push(("last_reviewed_by", last_reviewed_by.unwrap_or_default()));
+    };
+
+    if sort_field.is_some() {
+      _q.push(("sort_field", sort_field.unwrap_or_default()));
+    };
+
+    if sort_direction.is_some() {
+      _q.push(("sort_direction", sort_direction.unwrap_or_default()));
+    }
+
+    let takendown_value = serde_json::to_string(&takendown)?;
+
+    if takendown.is_some() {
+      _q.push(("takendown", takendown_value.as_str()));
+    }
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
     }
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
@@ -5230,6 +5485,24 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Delete a user account as an administrator.
+
+  pub fn com_atproto_admin_deleteaccount(&self, did: &str) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.deleteAccount",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("did"), json!(did));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
   /// Disable an account from receiving new invite codes, but does not invalidate existing codes.
 
   pub fn com_atproto_admin_disableaccountinvites(
@@ -5284,6 +5557,38 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Take a moderation action on an actor.
+
+  pub fn com_atproto_admin_emitmoderationevent(
+    &self,
+    event: ComAtprotoAdminEmitmoderationeventMainInputEvent,
+    subject: ComAtprotoAdminEmitmoderationeventMainInputSubject,
+    created_by: &str,
+    subject_blob_cids: Option<&[&CidString]>,
+  ) -> Result<ComAtprotoAdminDefsModeventview> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.emitModerationEvent",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("event"), json!(event));
+
+    input.insert(String::from("subject"), json!(subject));
+
+    input.insert(String::from("created_by"), json!(created_by));
+
+    if let Some(v) = &subject_blob_cids {
+      input.insert(String::from("subject_blob_cids"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
+  }
+
   /// Re-enable an account&#39;s ability to receive invite codes.
 
   pub fn com_atproto_admin_enableaccountinvites(
@@ -5310,66 +5615,13 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Resolve moderation reports by an action.
-
-  pub fn com_atproto_admin_resolvemoderationreports(
-    &self,
-    action_id: i64,
-    report_ids: &[i64],
-    created_by: &str,
-  ) -> Result<ComAtprotoAdminDefsActionview> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.admin.resolveModerationReports",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("action_id"), json!(action_id));
-
-    input.insert(String::from("report_ids"), json!(report_ids));
-
-    input.insert(String::from("created_by"), json!(created_by));
-
-    Ok(req.send_json(json!(input))?.into_json()?)
-  }
-
-  /// Reverse a moderation action.
-
-  pub fn com_atproto_admin_reversemoderationaction(
-    &self,
-    id: i64,
-    reason: &str,
-    created_by: &str,
-  ) -> Result<ComAtprotoAdminDefsActionview> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.admin.reverseModerationAction",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("id"), json!(id));
-
-    input.insert(String::from("reason"), json!(reason));
-
-    input.insert(String::from("created_by"), json!(created_by));
-
-    Ok(req.send_json(json!(input))?.into_json()?)
-  }
-
   /// Send email to a user&#39;s account email address.
 
   pub fn com_atproto_admin_sendemail(
     &self,
     recipient_did: &str,
     content: &str,
+    sender_did: &str,
     subject: Option<&str>,
   ) -> Result<ComAtprotoAdminSendemail> {
     let mut req = self.agent.post(&format!(
@@ -5386,58 +5638,10 @@ impl Client {
 
     input.insert(String::from("content"), json!(content));
 
+    input.insert(String::from("sender_did"), json!(sender_did));
+
     if let Some(v) = &subject {
       input.insert(String::from("subject"), json!(v));
-    }
-
-    Ok(req.send_json(json!(input))?.into_json()?)
-  }
-
-  /// Take a moderation action on an actor.
-
-  pub fn com_atproto_admin_takemoderationaction(
-    &self,
-    action: &str,
-    subject: ComAtprotoAdminTakemoderationactionMainInputSubject,
-    reason: &str,
-    created_by: &str,
-    subject_blob_cids: Option<&[&CidString]>,
-    create_label_vals: Option<&[&str]>,
-    negate_label_vals: Option<&[&str]>,
-    duration_in_hours: Option<i64>,
-  ) -> Result<ComAtprotoAdminDefsActionview> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.admin.takeModerationAction",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("action"), json!(action));
-
-    input.insert(String::from("subject"), json!(subject));
-
-    input.insert(String::from("reason"), json!(reason));
-
-    input.insert(String::from("created_by"), json!(created_by));
-
-    if let Some(v) = &subject_blob_cids {
-      input.insert(String::from("subject_blob_cids"), json!(v));
-    }
-
-    if let Some(v) = &create_label_vals {
-      input.insert(String::from("create_label_vals"), json!(v));
-    }
-
-    if let Some(v) = &negate_label_vals {
-      input.insert(String::from("negate_label_vals"), json!(v));
-    }
-
-    if let Some(v) = &duration_in_hours {
-      input.insert(String::from("duration_in_hours"), json!(v));
     }
 
     Ok(req.send_json(json!(input))?.into_json()?)
@@ -5738,6 +5942,7 @@ impl Client {
     }
 
     req = req.set("Content-Type", content_type);
+
     Ok(req.send_bytes(bytes)?.into_json()?)
   }
 
@@ -6158,6 +6363,75 @@ impl Client {
     input.insert(String::from("hostname"), json!(hostname));
 
     Ok(req.send_json(json!(input))?)
+  }
+
+  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
+
+  pub fn com_atproto_temp_importrepo(&self, did: &str, bytes: &[u8]) -> Result<Vec<u8>> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.temp.importRepo",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("did", did));
+
+    req = req.query_pairs(_q);
+
+    req = req.set("Content-Type", "application/vnd.ipld.car");
+
+    Ok(req.send_bytes(bytes)?.into_json()?)
+  }
+
+  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
+
+  pub fn com_atproto_temp_pushblob(
+    &self,
+    bytes: &[u8],
+    content_type: &str,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.temp.pushBlob",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    req = req.set("Content-Type", content_type);
+
+    Ok(req.send_bytes(bytes)?)
+  }
+
+  /// Transfer an account.
+
+  pub fn com_atproto_temp_transferaccount(
+    &self,
+    handle: &str,
+    did: &str,
+    plc_op: &Record,
+  ) -> Result<ComAtprotoTempTransferaccount> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.temp.transferAccount",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("handle"), json!(handle));
+
+    input.insert(String::from("did"), json!(did));
+
+    input.insert(String::from("plc_op"), json!(plc_op));
+
+    Ok(req.send_json(json!(input))?.into_json()?)
   }
 
   /// Subscribe to label updates.
