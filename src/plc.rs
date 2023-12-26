@@ -2,12 +2,11 @@ use std::collections::HashMap;
 
 use anyhow::Result;
 use chrono::{DateTime, Utc};
-use libipld::Cid;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use ureq::{Agent, Proxy};
 
-use crate::api::DidDoc;
+use crate::api::{CidString, DidDoc};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
@@ -39,7 +38,7 @@ pub struct Create {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(tag = "$type", rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "snake_case")]
 pub enum PlcOp {
   PlcOperation(PlcOperation),
   PlcTombstone(PlcTombstone),
@@ -57,7 +56,7 @@ impl Default for PlcOp {
 pub struct LogEntry {
   pub did: String,
   pub operation: PlcOp,
-  pub cid: Cid,
+  pub cid: CidString,
   pub nullified: bool,
   pub created_at: DateTime<Utc>,
 }
