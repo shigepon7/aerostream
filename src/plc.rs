@@ -146,20 +146,15 @@ impl Plc {
     )
   }
 
-  pub fn export(&self, count: Option<i64>, after: DateTime<Utc>) -> Result<Vec<LogEntry>> {
-    let mut count = count.unwrap_or(10);
-    if count > 1000 {
-      count = 1000;
+  pub fn export(&self, count: Option<i64>, after: Option<DateTime<Utc>>) -> Result<Vec<LogEntry>> {
+    let mut req = self.agent.get(&format!("https://{}/export", self.host));
+    if let Some(c) = count.as_ref() {
+      req = req.query("count", c.to_string().as_str());
     }
-    let res = self
-      .agent
-      .get(&format!("https://{}/export", self.host))
-      .query_pairs([
-        ("count", count.to_string().as_str()),
-        ("after", after.to_string().as_str()),
-      ])
-      .call()?
-      .into_string()?;
+    if let Some(a) = after.as_ref() {
+      req = req.query("after", a.to_string().as_str());
+    }
+    let res = req.call()?.into_string()?;
     Ok(
       res
         .lines()
