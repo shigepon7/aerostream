@@ -176,6 +176,15 @@ pub struct AppBskyActorDefsThreadviewpref {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsInterestspref {
+  pub tags: Vec<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternal {
   pub external: AppBskyEmbedExternalExternal,
 
@@ -670,6 +679,31 @@ pub struct AppBskyGraphDefsListviewerstate {
   pub extra: HashMap<String, Value>,
 }
 
+/// indicates that a handle or DID could not be resolved
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyGraphDefsNotfoundactor {
+  pub actor: String,
+  #[serde(rename = "notFound")]
+  pub not_found: bool,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// lists the bi-directional graph relationships between one actor (not indicated in the object), and the target actors (the DID included in the object)
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyGraphDefsRelationship {
+  pub did: String,
+  pub following: Option<String>,
+  #[serde(rename = "followedBy")]
+  pub followed_by: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyNotificationListnotificationsNotification {
@@ -756,6 +790,18 @@ pub struct AppBskyUnspeccedDefsSkeletonsearchpost {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyUnspeccedDefsSkeletonsearchactor {
   pub did: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyUnspeccedGettaggedsuggestionsSuggestion {
+  pub tag: String,
+  #[serde(rename = "subjectType")]
+  pub subject_type: String,
+  pub subject: String,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -855,7 +901,10 @@ pub struct ComAtprotoAdminDefsSubjectstatusview {
   pub last_reviewed_at: Option<DateTime<Utc>>,
   #[serde(rename = "lastReportedAt")]
   pub last_reported_at: Option<DateTime<Utc>>,
+  #[serde(rename = "lastAppealedAt")]
+  pub last_appealed_at: Option<DateTime<Utc>>,
   pub takendown: Option<bool>,
+  pub appealed: Option<bool>,
   #[serde(rename = "suspendUntil")]
   pub suspend_until: Option<DateTime<Utc>>,
 
@@ -940,6 +989,8 @@ pub struct ComAtprotoAdminDefsAccountview {
   #[serde(rename = "indexedAt")]
   pub indexed_at: DateTime<Utc>,
   pub email: Option<String>,
+  #[serde(rename = "relatedRecords")]
+  pub related_records: Option<Vec<Record>>,
   #[serde(rename = "invitedBy")]
   pub invited_by: Option<ComAtprotoServerDefsInvitecode>,
   pub invites: Option<Vec<ComAtprotoServerDefsInvitecode>>,
@@ -1106,6 +1157,16 @@ pub struct ComAtprotoAdminDefsModeventreversetakedown {
   pub extra: HashMap<String, Value>,
 }
 
+/// Resolve appeal on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventresolveappeal {
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
 /// Add a comment to a subject
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -1189,6 +1250,27 @@ pub struct ComAtprotoAdminDefsModeventunmute {
 pub struct ComAtprotoAdminDefsModeventemail {
   #[serde(rename = "subjectLine")]
   pub subject_line: String,
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsCommunicationtemplateview {
+  pub id: String,
+  pub name: String,
+  #[serde(rename = "contentMarkdown")]
+  pub content_markdown: String,
+  pub disabled: bool,
+  #[serde(rename = "lastUpdatedBy")]
+  pub last_updated_by: String,
+  #[serde(rename = "createdAt")]
+  pub created_at: DateTime<Utc>,
+  #[serde(rename = "updatedAt")]
+  pub updated_at: DateTime<Utc>,
+  pub subject: Option<String>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -2224,6 +2306,13 @@ pub struct AppBskyGraphGetmutes {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppBskyGraphGetrelationships {
+  pub relationships: Vec<AppBskyGraphGetrelationshipsMainOutputRelationshipsItem>,
+  pub actor: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyGraphGetsuggestedfollowsbyactor {
   pub suggestions: Vec<AppBskyActorDefsProfileview>,
 }
@@ -2245,13 +2334,6 @@ pub struct AppBskyNotificationListnotifications {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppBskyUnspeccedGetpopular {
-  pub feed: Vec<AppBskyFeedDefsFeedviewpost>,
-  pub cursor: Option<String>,
-}
-
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppBskyUnspeccedGetpopularfeedgenerators {
   pub feeds: Vec<AppBskyFeedDefsGeneratorview>,
   pub cursor: Option<String>,
@@ -2259,9 +2341,8 @@ pub struct AppBskyUnspeccedGetpopularfeedgenerators {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct AppBskyUnspeccedGettimelineskeleton {
-  pub feed: Vec<AppBskyFeedDefsSkeletonfeedpost>,
-  pub cursor: Option<String>,
+pub struct AppBskyUnspeccedGettaggedsuggestions {
+  pub suggestions: Vec<AppBskyUnspeccedGettaggedsuggestionsSuggestion>,
 }
 
 #[skip_serializing_none]
@@ -2284,6 +2365,12 @@ pub struct AppBskyUnspeccedSearchpostsskeleton {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminGetaccountinfos {
+  pub infos: Vec<ComAtprotoAdminDefsAccountview>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoAdminGetinvitecodes {
   pub codes: Vec<ComAtprotoServerDefsInvitecode>,
   pub cursor: Option<String>,
@@ -2294,6 +2381,13 @@ pub struct ComAtprotoAdminGetinvitecodes {
 pub struct ComAtprotoAdminGetsubjectstatus {
   pub subject: ComAtprotoAdminGetsubjectstatusMainOutputSubject,
   pub takedown: Option<ComAtprotoAdminDefsStatusattr>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoAdminListcommunicationtemplates {
+  #[serde(rename = "communicationTemplates")]
+  pub communication_templates: Vec<ComAtprotoAdminDefsCommunicationtemplateview>,
 }
 
 #[skip_serializing_none]
@@ -2365,6 +2459,8 @@ pub struct ComAtprotoServerDescribeserver {
   pub available_user_domains: Vec<String>,
   #[serde(rename = "inviteCodeRequired")]
   pub invite_code_required: Option<bool>,
+  #[serde(rename = "phoneVerificationRequired")]
+  pub phone_verification_required: Option<bool>,
   pub links: Option<ComAtprotoServerDescribeserverLinks>,
 }
 
@@ -2417,6 +2513,16 @@ pub struct ComAtprotoSyncListblobs {
 pub struct ComAtprotoSyncListrepos {
   pub repos: Vec<ComAtprotoSyncListreposRepo>,
   pub cursor: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoTempChecksignupqueue {
+  pub activated: bool,
+  #[serde(rename = "placeInQueue")]
+  pub place_in_queue: Option<i64>,
+  #[serde(rename = "estimatedTimeMs")]
+  pub estimated_time_ms: Option<i64>,
 }
 
 #[skip_serializing_none]
@@ -2566,6 +2672,8 @@ pub enum AppBskyActorDefsPreferencesItem {
   AppBskyActorDefsFeedviewpref(Box<AppBskyActorDefsFeedviewpref>),
   #[serde(rename = "app.bsky.actor.defs#threadViewPref")]
   AppBskyActorDefsThreadviewpref(Box<AppBskyActorDefsThreadviewpref>),
+  #[serde(rename = "app.bsky.actor.defs#interestsPref")]
+  AppBskyActorDefsInterestspref(Box<AppBskyActorDefsInterestspref>),
 }
 
 impl Default for AppBskyActorDefsPreferencesItem {
@@ -2853,6 +2961,21 @@ impl Default for AppBskyFeedThreadgateMainAllowItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
+pub enum AppBskyGraphGetrelationshipsMainOutputRelationshipsItem {
+  #[serde(rename = "app.bsky.graph.defs#relationship")]
+  AppBskyGraphDefsRelationship(Box<AppBskyGraphDefsRelationship>),
+  #[serde(rename = "app.bsky.graph.defs#notFoundActor")]
+  AppBskyGraphDefsNotfoundactor(Box<AppBskyGraphDefsNotfoundactor>),
+}
+
+impl Default for AppBskyGraphGetrelationshipsMainOutputRelationshipsItem {
+  fn default() -> Self {
+    Self::AppBskyGraphDefsRelationship(Box::new(AppBskyGraphDefsRelationship::default()))
+  }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "$type")]
 pub enum AppBskyGraphListMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
@@ -2946,6 +3069,8 @@ pub enum ComAtprotoAdminDefsModeventviewdetailEvent {
   ComAtprotoAdminDefsModeventescalate(Box<ComAtprotoAdminDefsModeventescalate>),
   #[serde(rename = "com.atproto.admin.defs#modEventMute")]
   ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
+  #[serde(rename = "com.atproto.admin.defs#modEventResolveAppeal")]
+  ComAtprotoAdminDefsModeventresolveappeal(Box<ComAtprotoAdminDefsModeventresolveappeal>),
 }
 
 impl Default for ComAtprotoAdminDefsModeventviewdetailEvent {
@@ -4176,6 +4301,34 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Enumerates public relationships between one account, and a list of other accounts
+
+  pub fn app_bsky_graph_getrelationships(
+    &self,
+    actor: &str,
+    others: Option<&[&str]>,
+  ) -> Result<AppBskyGraphGetrelationships> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/app.bsky.graph.getRelationships",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("actor", actor));
+
+    let others_value = serde_json::to_string(&others)?;
+
+    if others.is_some() {
+      _q.push(("others", others_value.as_str()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
   /// Get suggested follows related to a given actor.
 
   pub fn app_bsky_graph_getsuggestedfollowsbyactor(
@@ -4259,43 +4412,6 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// DEPRECATED: will be removed soon. Use a feed generator alternative.
-
-  pub fn app_bsky_unspecced_getpopular(
-    &self,
-    include_nsfw: Option<bool>,
-    limit: Option<i64>,
-    cursor: Option<&str>,
-  ) -> Result<AppBskyUnspeccedGetpopular> {
-    let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/app.bsky.unspecced.getPopular",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut _q = Vec::new();
-
-    let include_nsfw_value = serde_json::to_string(&include_nsfw)?;
-
-    if include_nsfw.is_some() {
-      _q.push(("include_nsfw", include_nsfw_value.as_str()));
-    }
-
-    let limit_value = serde_json::to_string(&limit)?;
-
-    if limit.is_some() {
-      _q.push(("limit", limit_value.as_str()));
-    };
-
-    if cursor.is_some() {
-      _q.push(("cursor", cursor.unwrap_or_default()));
-    }
-
-    Ok(req.query_pairs(_q).call()?.into_json()?)
-  }
-
   /// An unspecced view of globally popular feed generators.
 
   pub fn app_bsky_unspecced_getpopularfeedgenerators(
@@ -4331,34 +4447,20 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// DEPRECATED: a skeleton of a timeline. Unspecced and will be unavailable soon.
+  /// Get a list of suggestions (feeds and users) tagged with categories
 
-  pub fn app_bsky_unspecced_gettimelineskeleton(
+  pub fn app_bsky_unspecced_gettaggedsuggestions(
     &self,
-    limit: Option<i64>,
-    cursor: Option<&str>,
-  ) -> Result<AppBskyUnspeccedGettimelineskeleton> {
+  ) -> Result<AppBskyUnspeccedGettaggedsuggestions> {
     let mut req = self.agent.get(&format!(
-      "https://{}/xrpc/app.bsky.unspecced.getTimelineSkeleton",
+      "https://{}/xrpc/app.bsky.unspecced.getTaggedSuggestions",
       self.host
     ));
     if let Some(jwt) = &self.jwt {
       req = req.set("Authorization", &format!("Bearer {}", jwt));
     }
 
-    let mut _q = Vec::new();
-
-    let limit_value = serde_json::to_string(&limit)?;
-
-    if limit.is_some() {
-      _q.push(("limit", limit_value.as_str()));
-    };
-
-    if cursor.is_some() {
-      _q.push(("cursor", cursor.unwrap_or_default()));
-    }
-
-    Ok(req.query_pairs(_q).call()?.into_json()?)
+    Ok(req.call()?.into_json()?)
   }
 
   /// Backend Actors (profile) search, returns only skeleton.
@@ -4451,6 +4553,29 @@ impl Client {
     let mut _q = Vec::new();
 
     _q.push(("did", did));
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Get details about some accounts.
+
+  pub fn com_atproto_admin_getaccountinfos(
+    &self,
+    dids: &[&str],
+  ) -> Result<ComAtprotoAdminGetaccountinfos> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.getAccountInfos",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    let mut dids_value = dids.iter().map(|i| ("dids", *i)).collect::<Vec<_>>();
+
+    _q.append(&mut dids_value);
 
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
@@ -4594,6 +4719,22 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Get list of all communication templates.
+
+  pub fn com_atproto_admin_listcommunicationtemplates(
+    &self,
+  ) -> Result<ComAtprotoAdminListcommunicationtemplates> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.admin.listCommunicationTemplates",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
+  }
+
   /// List moderation events related to a subject.
 
   pub fn com_atproto_admin_querymoderationevents(
@@ -4673,6 +4814,7 @@ impl Client {
     sort_field: Option<&str>,
     sort_direction: Option<&str>,
     takendown: Option<bool>,
+    appealed: Option<bool>,
     limit: Option<i64>,
     cursor: Option<&str>,
   ) -> Result<ComAtprotoAdminQuerymoderationstatuses> {
@@ -4750,6 +4892,12 @@ impl Client {
 
     if takendown.is_some() {
       _q.push(("takendown", takendown_value.as_str()));
+    }
+
+    let appealed_value = serde_json::to_string(&appealed)?;
+
+    if appealed.is_some() {
+      _q.push(("appealed", appealed_value.as_str()));
     }
 
     let limit_value = serde_json::to_string(&limit)?;
@@ -5309,6 +5457,20 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
+  /// Check accounts location in signup queue.
+
+  pub fn com_atproto_temp_checksignupqueue(&self) -> Result<ComAtprotoTempChecksignupqueue> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.temp.checkSignupQueue",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
+  }
+
   /// Fetch all labels from a labeler created after a certain date.
 
   pub fn com_atproto_temp_fetchlabels(
@@ -5485,6 +5647,38 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
+  /// Administrative action to create a new, re-usable communication (email for now) template.
+
+  pub fn com_atproto_admin_createcommunicationtemplate(
+    &self,
+    name: &str,
+    content_markdown: &str,
+    subject: &str,
+    created_by: Option<&str>,
+  ) -> Result<ComAtprotoAdminDefsCommunicationtemplateview> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.createCommunicationTemplate",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("name"), json!(name));
+
+    input.insert(String::from("content_markdown"), json!(content_markdown));
+
+    input.insert(String::from("subject"), json!(subject));
+
+    if let Some(v) = &created_by {
+      input.insert(String::from("created_by"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
+  }
+
   /// Delete a user account as an administrator.
 
   pub fn com_atproto_admin_deleteaccount(&self, did: &str) -> Result<ureq::Response> {
@@ -5499,6 +5693,24 @@ impl Client {
     let mut input = serde_json::Map::new();
 
     input.insert(String::from("did"), json!(did));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Delete a communication template.
+
+  pub fn com_atproto_admin_deletecommunicationtemplate(&self, id: &str) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.deleteCommunicationTemplate",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("id"), json!(id));
 
     Ok(req.send_json(json!(input))?)
   }
@@ -5623,6 +5835,7 @@ impl Client {
     content: &str,
     sender_did: &str,
     subject: Option<&str>,
+    comment: Option<&str>,
   ) -> Result<ComAtprotoAdminSendemail> {
     let mut req = self.agent.post(&format!(
       "https://{}/xrpc/com.atproto.admin.sendEmail",
@@ -5642,6 +5855,10 @@ impl Client {
 
     if let Some(v) = &subject {
       input.insert(String::from("subject"), json!(v));
+    }
+
+    if let Some(v) = &comment {
+      input.insert(String::from("comment"), json!(v));
     }
 
     Ok(req.send_json(json!(input))?.into_json()?)
@@ -5693,6 +5910,52 @@ impl Client {
     input.insert(String::from("handle"), json!(handle));
 
     Ok(req.send_json(json!(input))?)
+  }
+
+  /// Administrative action to update an existing communication template. Allows passing partial fields to patch specific fields only.
+
+  pub fn com_atproto_admin_updatecommunicationtemplate(
+    &self,
+    id: &str,
+    name: Option<&str>,
+    content_markdown: Option<&str>,
+    subject: Option<&str>,
+    updated_by: Option<&str>,
+    disabled: Option<bool>,
+  ) -> Result<ComAtprotoAdminDefsCommunicationtemplateview> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.updateCommunicationTemplate",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("id"), json!(id));
+
+    if let Some(v) = &name {
+      input.insert(String::from("name"), json!(v));
+    }
+
+    if let Some(v) = &content_markdown {
+      input.insert(String::from("content_markdown"), json!(v));
+    }
+
+    if let Some(v) = &subject {
+      input.insert(String::from("subject"), json!(v));
+    }
+
+    if let Some(v) = &updated_by {
+      input.insert(String::from("updated_by"), json!(v));
+    }
+
+    if let Some(v) = &disabled {
+      input.insert(String::from("disabled"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
   }
 
   /// Update the service-specific admin status of a subject (account, record, or blob).
@@ -5978,6 +6241,8 @@ impl Client {
     email: Option<&str>,
     did: Option<&str>,
     invite_code: Option<&str>,
+    verification_code: Option<&str>,
+    verification_phone: Option<&str>,
     password: Option<&str>,
     recovery_key: Option<&str>,
     plc_op: Option<&Record>,
@@ -6004,6 +6269,14 @@ impl Client {
 
     if let Some(v) = &invite_code {
       input.insert(String::from("invite_code"), json!(v));
+    }
+
+    if let Some(v) = &verification_code {
+      input.insert(String::from("verification_code"), json!(v));
+    }
+
+    if let Some(v) = &verification_phone {
+      input.insert(String::from("verification_phone"), json!(v));
     }
 
     if let Some(v) = &password {
@@ -6405,6 +6678,27 @@ impl Client {
     req = req.set("Content-Type", content_type);
 
     Ok(req.send_bytes(bytes)?)
+  }
+
+  /// Request a verification code to be sent to the supplied phone number
+
+  pub fn com_atproto_temp_requestphoneverification(
+    &self,
+    phone_number: &str,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.temp.requestPhoneVerification",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("phone_number"), json!(phone_number));
+
+    Ok(req.send_json(json!(input))?)
   }
 
   /// Transfer an account.

@@ -4,7 +4,7 @@ edition = "2021"
 license = "Apache-2.0"
 name = "aerostream"
 repository = "https://github.com/shigepon7/aerostream"
-version = "0.14.1"
+version = "0.14.2"
 
 [[bin]]
 name = "aerostream"
@@ -22,32 +22,32 @@ terminal = [
 ]
 
 [dependencies]
-anyhow = "1.0.75"
-chrono = {version = "0.4.31", features = ["serde"]}
-crossterm = {version = "0.27.0", optional = true}
-fern = {version = "0.6.2", optional = true}
-image = {version = "0.24.7", optional = true}
-indexmap = {version = "2.1.0", features = ["serde"]}
+anyhow = "1.0.79"
+chrono = { version = "0.4.33", features = ["serde"] }
+crossterm = { version = "0.27.0", optional = true }
+fern = { version = "0.6.2", optional = true }
+image = { version = "0.24.8", optional = true }
+indexmap = { version = "2.2.2", features = ["serde"] }
 leb128 = "0.2.5"
-libipld = {version = "0.16.0", features = ["serde-codec"]}
+libipld = { version = "0.16.0", features = ["serde-codec"] }
 log = "0.4.20"
-ratatui = {version = "0.23.0", optional = true}
-ratatui-image = {version = "0.3.5", features = [
+ratatui = { version = "0.26.0", optional = true }
+ratatui-image = { version = "0.8.0", features = [
   "crossterm",
-], default-features = false, optional = true}
-regex = "1.10.2"
-serde = {version = "1.0.192", features = ["derive"]}
-serde_json = "1.0.108"
-serde_with = "3.4.0"
-serde_yaml = "0.9.27"
-textwrap = {version = "0.16.0", optional = true}
+], default-features = false, optional = true }
+regex = "1.10.3"
+serde = { version = "1.0.196", features = ["derive"] }
+serde_json = "1.0.113"
+serde_with = "3.6.0"
+serde_yaml = "0.9.31"
+textwrap = { version = "0.16.0", optional = true }
 tiny_http = "0.12.0"
-tungstenite = {version = "0.20.1", features = ["rustls-tls-webpki-roots"]}
-ureq = {version = "2.8.0", features = ["json"]}
-url = "2.4.1"
+tungstenite = { version = "0.21.0", features = ["rustls-tls-webpki-roots"] }
+ureq = { version = "2.3.1", features = ["json"] }
+url = "2.5.0"
 urlencoding = "2.1.3"
-webbrowser = {version = "0.8.12", optional = true}
+webbrowser = { version = "0.8.12", optional = true }
 
 [dev-dependencies]
-env_logger = "0.10.0"
+env_logger = "0.11.1"
 urandom = "0.1.1"

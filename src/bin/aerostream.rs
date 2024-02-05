@@ -14,14 +14,14 @@ use crossterm::terminal::{
   disable_raw_mode, enable_raw_mode, window_size, EnterAlternateScreen, LeaveAlternateScreen,
 };
 use image::{load_from_memory, DynamicImage};
-use ratatui::backend::{Backend, CrosstermBackend};
+use ratatui::backend::CrosstermBackend;
 use ratatui::layout::{Constraint, Direction, Layout};
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState};
 use ratatui::{Frame, Terminal};
 use ratatui_image::picker::Picker;
-use ratatui_image::{FixedImage, Resize};
+use ratatui_image::{Image, Resize};
 use textwrap::wrap;
 
 struct Post {
@@ -114,8 +114,8 @@ impl Post {
   }
 }
 
-fn ui<B: Backend>(
-  f: &mut Frame<B>,
+fn ui(
+  f: &mut Frame,
   filters: &mut HashMap<String, (VecDeque<Post>, ListState)>,
   focus: usize,
   image_status: &mut (Option<String>, Option<DynamicImage>),
@@ -144,7 +144,7 @@ fn ui<B: Backend>(
     };
     let mut picker = Picker::new(font_size);
     f.render_widget(
-      FixedImage::new(
+      Image::new(
         picker
           .new_protocol(img_data.clone(), size, Resize::Fit)
           .unwrap()
