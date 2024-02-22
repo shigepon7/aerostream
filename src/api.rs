@@ -86,6 +86,7 @@ pub struct AppBskyActorDefsProfileviewdetailed {
   pub extra: HashMap<String, Value>,
 }
 
+/// Metadata about the requesting account&#39;s relationship with the subject account. Only has meaningful content for authed requests.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsViewerstate {
@@ -129,6 +130,8 @@ pub struct AppBskyActorDefsContentlabelpref {
 pub struct AppBskyActorDefsSavedfeedspref {
   pub pinned: Vec<String>,
   pub saved: Vec<String>,
+  #[serde(rename = "timelineIndex")]
+  pub timeline_index: Option<i64>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -183,6 +186,7 @@ pub struct AppBskyActorDefsInterestspref {
   pub extra: HashMap<String, Value>,
 }
 
+/// A representation of some externally linked content (eg, a URL and &#39;card&#39;), embedded in a Bluesky record (eg, a post).
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyEmbedExternal {
@@ -379,6 +383,7 @@ pub struct AppBskyFeedDefsPostview {
   pub extra: HashMap<String, Value>,
 }
 
+/// Metadata about the requesting account&#39;s relationship with the subject content. Only has meaningful content for authed requests.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedDefsViewerstate {
@@ -724,6 +729,7 @@ pub struct AppBskyNotificationListnotificationsNotification {
   pub extra: HashMap<String, Value>,
 }
 
+/// Annotation of a sub-string within rich text.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacet {
@@ -734,7 +740,7 @@ pub struct AppBskyRichtextFacet {
   pub extra: HashMap<String, Value>,
 }
 
-/// A facet feature for actor mentions.
+/// Facet feature for mention of another account. The text is usually a handle, including a &#39;@&#39; prefix, but the facet reference is a DID.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetMention {
@@ -744,7 +750,7 @@ pub struct AppBskyRichtextFacetMention {
   pub extra: HashMap<String, Value>,
 }
 
-/// A facet feature for links.
+/// Facet feature for a URL. The text URL may have been simplified or truncated, but the facet reference should be a complete URL.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetLink {
@@ -754,7 +760,7 @@ pub struct AppBskyRichtextFacetLink {
   pub extra: HashMap<String, Value>,
 }
 
-/// A hashtag.
+/// Facet feature for a hashtag. The text usually includes a &#39;#&#39; prefix, but the facet reference should not (except in the case of &#39;double hash tags&#39;).
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetTag {
@@ -764,7 +770,7 @@ pub struct AppBskyRichtextFacetTag {
   pub extra: HashMap<String, Value>,
 }
 
-/// A text segment. Start is inclusive, end is exclusive. Indices are for utf8-encoded strings.
+/// Specifies the sub-string range a facet feature applies to. Start index is inclusive, end index is exclusive. Indices are zero-indexed, counting bytes of the UTF-8 encoded text. NOTE: some languages, like Javascript, use UTF-16 or Unicode codepoints for string slice indexing; in these languages, convert to byte arrays before working with facets.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyRichtextFacetByteslice {
@@ -907,6 +913,7 @@ pub struct ComAtprotoAdminDefsSubjectstatusview {
   pub appealed: Option<bool>,
   #[serde(rename = "suspendUntil")]
   pub suspend_until: Option<DateTime<Utc>>,
+  pub tags: Option<Vec<String>>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -1256,6 +1263,18 @@ pub struct ComAtprotoAdminDefsModeventemail {
   pub extra: HashMap<String, Value>,
 }
 
+/// Add/Remove a tag on a subject
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoAdminDefsModeventtag {
+  pub add: Vec<String>,
+  pub remove: Vec<String>,
+  pub comment: Option<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoAdminDefsCommunicationtemplateview {
@@ -1331,7 +1350,7 @@ pub struct ComAtprotoLabelSubscribelabelsInfo {
   pub extra: HashMap<String, Value>,
 }
 
-/// Create a new record.
+/// Operation which creates a new record.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoRepoApplywritesCreate {
@@ -1343,7 +1362,7 @@ pub struct ComAtprotoRepoApplywritesCreate {
   pub extra: HashMap<String, Value>,
 }
 
-/// Update an existing record.
+/// Operation which updates an existing record.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoRepoApplywritesUpdate {
@@ -1355,12 +1374,23 @@ pub struct ComAtprotoRepoApplywritesUpdate {
   pub extra: HashMap<String, Value>,
 }
 
-/// Delete an existing record.
+/// Operation which deletes an existing record.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoRepoApplywritesDelete {
   pub collection: String,
   pub rkey: String,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoRepoListmissingblobsRecordblob {
+  pub cid: CidString,
+  #[serde(rename = "recordUri")]
+  pub record_uri: String,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -1473,6 +1503,7 @@ pub struct ComAtprotoSyncListreposRepo {
   pub extra: HashMap<String, Value>,
 }
 
+/// Represents an update of repository state. Note that empty commits are allowed, which include no repo data changes, but an update to rev and signature.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposCommit {
@@ -1494,6 +1525,19 @@ pub struct ComAtprotoSyncSubscribereposCommit {
   pub extra: HashMap<String, Value>,
 }
 
+/// Represents a change to an account&#39;s identity. Could be an updated handle, signing key, or pds hosting endpoint. Serves as a prod to all downstream services to refresh their identity cache.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ComAtprotoSyncSubscribereposIdentity {
+  pub seq: i64,
+  pub did: String,
+  pub time: DateTime<Utc>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// Represents an update of the account&#39;s handle, or transition to/from invalid state. NOTE: Will be deprecated in favor of #identity.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposHandle {
@@ -1506,6 +1550,7 @@ pub struct ComAtprotoSyncSubscribereposHandle {
   pub extra: HashMap<String, Value>,
 }
 
+/// Represents an account moving from one PDS instance to another. NOTE: not implemented; account migration uses #identity instead
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposMigrate {
@@ -1519,6 +1564,7 @@ pub struct ComAtprotoSyncSubscribereposMigrate {
   pub extra: HashMap<String, Value>,
 }
 
+/// Indicates that an account has been deleted. NOTE: may be deprecated in favor of #identity or a future #account event
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposTombstone {
@@ -1540,7 +1586,7 @@ pub struct ComAtprotoSyncSubscribereposInfo {
   pub extra: HashMap<String, Value>,
 }
 
-/// A repo operation, ie a write of a single record. For creates and updates, CID is the record&#39;s CID as of this operation. For deletes, it&#39;s null.
+/// A repo operation, ie a mutation of a single record.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ComAtprotoSyncSubscribereposRepoop {
@@ -1552,7 +1598,7 @@ pub struct ComAtprotoSyncSubscribereposRepoop {
   pub extra: HashMap<String, Value>,
 }
 
-/// A declaration of a profile.
+/// A declaration of a Bluesky account profile.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorProfile {
@@ -1564,7 +1610,7 @@ pub struct AppBskyActorProfile {
   pub labels: Option<AppBskyActorProfileMainLabels>,
 }
 
-/// A declaration of the existence of a feed generator.
+/// Record declaring of the existence of a feed generator, and containing metadata about it. The record can exist in any repository.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedGenerator {
@@ -1580,7 +1626,7 @@ pub struct AppBskyFeedGenerator {
   pub labels: Option<AppBskyFeedGeneratorMainLabels>,
 }
 
-/// A declaration of a like.
+/// Record declaring a &#39;like&#39; of a piece of subject content.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedLike {
@@ -1589,7 +1635,7 @@ pub struct AppBskyFeedLike {
   pub created_at: DateTime<Utc>,
 }
 
-/// A declaration of a post.
+/// Record containing a Bluesky post.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedPost {
@@ -1605,7 +1651,7 @@ pub struct AppBskyFeedPost {
   pub tags: Option<Vec<String>>,
 }
 
-/// A declaration of a repost.
+/// Record representing a &#39;repost&#39; of an existing Bluesky post.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedRepost {
@@ -1614,7 +1660,7 @@ pub struct AppBskyFeedRepost {
   pub created_at: DateTime<Utc>,
 }
 
-/// Defines interaction gating rules for a thread. The rkey of the threadgate record should match the rkey of the thread&#39;s root post.
+/// Record defining interaction gating rules for a thread (aka, reply controls). The record key (rkey) of the threadgate record must match the record key of the thread&#39;s root post, and that record must be in the same repository..
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyFeedThreadgate {
@@ -1624,7 +1670,7 @@ pub struct AppBskyFeedThreadgate {
   pub allow: Option<Vec<AppBskyFeedThreadgateMainAllowItem>>,
 }
 
-/// A declaration of a block.
+/// Record declaring a &#39;block&#39; relationship against another account. NOTE: blocks are public in Bluesky; see blog posts for details.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphBlock {
@@ -1633,7 +1679,7 @@ pub struct AppBskyGraphBlock {
   pub created_at: DateTime<Utc>,
 }
 
-/// A declaration of a social follow.
+/// Record declaring a social &#39;follow&#39; relationship of another account. Duplicate follows will be ignored by the AppView.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphFollow {
@@ -1642,7 +1688,7 @@ pub struct AppBskyGraphFollow {
   pub created_at: DateTime<Utc>,
 }
 
-/// A declaration of a list of actors.
+/// Record representing a list of accounts (actors). Scope includes both moderation-oriented lists and curration-oriented lists.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphList {
@@ -1657,7 +1703,7 @@ pub struct AppBskyGraphList {
   pub labels: Option<AppBskyGraphListMainLabels>,
 }
 
-/// A block of an entire list of actors.
+/// Record representing a block relationship against an entire an entire list of accounts (actors).
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphListblock {
@@ -1666,7 +1712,7 @@ pub struct AppBskyGraphListblock {
   pub created_at: DateTime<Utc>,
 }
 
-/// An item under a declared list of actors.
+/// Record representing an account&#39;s inclusion on a specific list. The AppView will ignore duplicate listitem records.
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphListitem {
@@ -1712,6 +1758,9 @@ pub enum Record {
 
   #[serde(rename = "app.bsky.graph.listitem")]
   AppBskyGraphListitem(AppBskyGraphListitem),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for Record {
@@ -1855,6 +1904,7 @@ impl Record {
       Self::AppBskyGraphList(v) => Some(v.created_at),
       Self::AppBskyGraphListblock(v) => Some(v.created_at),
       Self::AppBskyGraphListitem(v) => Some(v.created_at),
+      _ => None,
     }
   }
 }
@@ -2047,6 +2097,8 @@ pub struct AtProtoPds {
 pub enum AtprotoService {
   #[serde(rename = "#atproto_pds")]
   AtprotoPds(AtProtoPds),
+  #[serde(other)]
+  Other,
 }
 
 #[skip_serializing_none]
@@ -2414,6 +2466,18 @@ pub struct ComAtprotoAdminSearchrepos {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoIdentityGetrecommendeddidcredentials {
+  #[serde(rename = "rotationKeys")]
+  pub rotation_keys: Option<Vec<String>>,
+  #[serde(rename = "alsoKnownAs")]
+  pub also_known_as: Option<Vec<String>>,
+  #[serde(rename = "verificationMethods")]
+  pub verification_methods: Option<Record>,
+  pub services: Option<Record>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoIdentityResolvehandle {
   pub did: String,
 }
@@ -2447,6 +2511,13 @@ pub struct ComAtprotoRepoGetrecord {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoRepoListmissingblobs {
+  pub blobs: Vec<ComAtprotoRepoListmissingblobsRecordblob>,
+  pub cursor: Option<String>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoRepoListrecords {
   pub records: Vec<ComAtprotoRepoListrecordsRecord>,
   pub cursor: Option<String>,
@@ -2454,9 +2525,32 @@ pub struct ComAtprotoRepoListrecords {
 
 #[skip_serializing_none]
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoServerCheckaccountstatus {
+  pub activated: bool,
+  #[serde(rename = "validDid")]
+  pub valid_did: bool,
+  #[serde(rename = "repoCommit")]
+  pub repo_commit: CidString,
+  #[serde(rename = "repoRev")]
+  pub repo_rev: String,
+  #[serde(rename = "repoBlocks")]
+  pub repo_blocks: i64,
+  #[serde(rename = "indexedRecords")]
+  pub indexed_records: i64,
+  #[serde(rename = "privateStateValues")]
+  pub private_state_values: i64,
+  #[serde(rename = "expectedBlobs")]
+  pub expected_blobs: i64,
+  #[serde(rename = "importedBlobs")]
+  pub imported_blobs: i64,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerDescribeserver {
   #[serde(rename = "availableUserDomains")]
   pub available_user_domains: Vec<String>,
+  pub did: String,
   #[serde(rename = "inviteCodeRequired")]
   pub invite_code_required: Option<bool>,
   #[serde(rename = "phoneVerificationRequired")]
@@ -2468,6 +2562,12 @@ pub struct ComAtprotoServerDescribeserver {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComAtprotoServerGetaccountinvitecodes {
   pub codes: Vec<ComAtprotoServerDefsInvitecode>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoServerGetserviceauth {
+  pub token: String,
 }
 
 #[skip_serializing_none]
@@ -2542,6 +2642,12 @@ pub struct ComAtprotoAdminSendemail {
 pub struct ComAtprotoAdminUpdatesubjectstatus {
   pub subject: ComAtprotoAdminUpdatesubjectstatusMainOutputSubject,
   pub takedown: Option<ComAtprotoAdminDefsStatusattr>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ComAtprotoIdentitySignplcoperation {
+  pub operation: Record,
 }
 
 #[skip_serializing_none]
@@ -2646,17 +2752,6 @@ pub struct ComAtprotoServerReservesigningkey {
   pub signing_key: String,
 }
 
-#[skip_serializing_none]
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ComAtprotoTempTransferaccount {
-  #[serde(rename = "accessJwt")]
-  pub access_jwt: String,
-  #[serde(rename = "refreshJwt")]
-  pub refresh_jwt: String,
-  pub handle: String,
-  pub did: String,
-}
-
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "$type")]
 pub enum AppBskyActorDefsPreferencesItem {
@@ -2674,6 +2769,9 @@ pub enum AppBskyActorDefsPreferencesItem {
   AppBskyActorDefsThreadviewpref(Box<AppBskyActorDefsThreadviewpref>),
   #[serde(rename = "app.bsky.actor.defs#interestsPref")]
   AppBskyActorDefsInterestspref(Box<AppBskyActorDefsInterestspref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyActorDefsPreferencesItem {
@@ -2687,6 +2785,9 @@ impl Default for AppBskyActorDefsPreferencesItem {
 pub enum AppBskyActorProfileMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyActorProfileMainLabels {
@@ -2708,6 +2809,9 @@ pub enum AppBskyEmbedRecordViewRecord {
   AppBskyFeedDefsGeneratorview(Box<AppBskyFeedDefsGeneratorview>),
   #[serde(rename = "app.bsky.graph.defs#listView")]
   AppBskyGraphDefsListview(Box<AppBskyGraphDefsListview>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyEmbedRecordViewRecord {
@@ -2727,6 +2831,9 @@ pub enum AppBskyEmbedRecordViewrecordEmbedsItem {
   AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
   #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
   AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyEmbedRecordViewrecordEmbedsItem {
@@ -2742,6 +2849,9 @@ pub enum AppBskyEmbedRecordwithmediaMainMedia {
   AppBskyEmbedImages(Box<AppBskyEmbedImages>),
   #[serde(rename = "app.bsky.embed.external")]
   AppBskyEmbedExternal(Box<AppBskyEmbedExternal>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyEmbedRecordwithmediaMainMedia {
@@ -2757,6 +2867,9 @@ pub enum AppBskyEmbedRecordwithmediaViewMedia {
   AppBskyEmbedImagesView(Box<AppBskyEmbedImagesView>),
   #[serde(rename = "app.bsky.embed.external#view")]
   AppBskyEmbedExternalView(Box<AppBskyEmbedExternalView>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyEmbedRecordwithmediaViewMedia {
@@ -2776,6 +2889,9 @@ pub enum AppBskyFeedDefsPostviewEmbed {
   AppBskyEmbedRecordView(Box<AppBskyEmbedRecordView>),
   #[serde(rename = "app.bsky.embed.recordWithMedia#view")]
   AppBskyEmbedRecordwithmediaView(Box<AppBskyEmbedRecordwithmediaView>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsPostviewEmbed {
@@ -2789,6 +2905,9 @@ impl Default for AppBskyFeedDefsPostviewEmbed {
 pub enum AppBskyFeedDefsFeedviewpostReason {
   #[serde(rename = "app.bsky.feed.defs#reasonRepost")]
   AppBskyFeedDefsReasonrepost(Box<AppBskyFeedDefsReasonrepost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsFeedviewpostReason {
@@ -2806,6 +2925,9 @@ pub enum AppBskyFeedDefsReplyrefRoot {
   AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
   #[serde(rename = "app.bsky.feed.defs#blockedPost")]
   AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsReplyrefRoot {
@@ -2823,6 +2945,9 @@ pub enum AppBskyFeedDefsReplyrefParent {
   AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
   #[serde(rename = "app.bsky.feed.defs#blockedPost")]
   AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsReplyrefParent {
@@ -2840,6 +2965,9 @@ pub enum AppBskyFeedDefsThreadviewpostParent {
   AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
   #[serde(rename = "app.bsky.feed.defs#blockedPost")]
   AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsThreadviewpostParent {
@@ -2857,6 +2985,9 @@ pub enum AppBskyFeedDefsThreadviewpostRepliesItem {
   AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
   #[serde(rename = "app.bsky.feed.defs#blockedPost")]
   AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsThreadviewpostRepliesItem {
@@ -2870,6 +3001,9 @@ impl Default for AppBskyFeedDefsThreadviewpostRepliesItem {
 pub enum AppBskyFeedDefsSkeletonfeedpostReason {
   #[serde(rename = "app.bsky.feed.defs#skeletonReasonRepost")]
   AppBskyFeedDefsSkeletonreasonrepost(Box<AppBskyFeedDefsSkeletonreasonrepost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedDefsSkeletonfeedpostReason {
@@ -2885,6 +3019,9 @@ impl Default for AppBskyFeedDefsSkeletonfeedpostReason {
 pub enum AppBskyFeedGeneratorMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedGeneratorMainLabels {
@@ -2902,6 +3039,9 @@ pub enum AppBskyFeedGetpostthreadMainOutputThread {
   AppBskyFeedDefsNotfoundpost(Box<AppBskyFeedDefsNotfoundpost>),
   #[serde(rename = "app.bsky.feed.defs#blockedPost")]
   AppBskyFeedDefsBlockedpost(Box<AppBskyFeedDefsBlockedpost>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedGetpostthreadMainOutputThread {
@@ -2921,6 +3061,9 @@ pub enum AppBskyFeedPostMainEmbed {
   AppBskyEmbedRecord(Box<AppBskyEmbedRecord>),
   #[serde(rename = "app.bsky.embed.recordWithMedia")]
   AppBskyEmbedRecordwithmedia(Box<AppBskyEmbedRecordwithmedia>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedPostMainEmbed {
@@ -2934,6 +3077,9 @@ impl Default for AppBskyFeedPostMainEmbed {
 pub enum AppBskyFeedPostMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedPostMainLabels {
@@ -2951,6 +3097,9 @@ pub enum AppBskyFeedThreadgateMainAllowItem {
   AppBskyFeedThreadgateFollowingrule(Box<AppBskyFeedThreadgateFollowingrule>),
   #[serde(rename = "app.bsky.feed.threadgate#listRule")]
   AppBskyFeedThreadgateListrule(Box<AppBskyFeedThreadgateListrule>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyFeedThreadgateMainAllowItem {
@@ -2966,6 +3115,9 @@ pub enum AppBskyGraphGetrelationshipsMainOutputRelationshipsItem {
   AppBskyGraphDefsRelationship(Box<AppBskyGraphDefsRelationship>),
   #[serde(rename = "app.bsky.graph.defs#notFoundActor")]
   AppBskyGraphDefsNotfoundactor(Box<AppBskyGraphDefsNotfoundactor>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyGraphGetrelationshipsMainOutputRelationshipsItem {
@@ -2979,6 +3131,9 @@ impl Default for AppBskyGraphGetrelationshipsMainOutputRelationshipsItem {
 pub enum AppBskyGraphListMainLabels {
   #[serde(rename = "com.atproto.label.defs#selfLabels")]
   ComAtprotoLabelDefsSelflabels(Box<ComAtprotoLabelDefsSelflabels>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyGraphListMainLabels {
@@ -2996,6 +3151,9 @@ pub enum AppBskyRichtextFacetMainFeaturesItem {
   AppBskyRichtextFacetLink(Box<AppBskyRichtextFacetLink>),
   #[serde(rename = "app.bsky.richtext.facet#tag")]
   AppBskyRichtextFacetTag(Box<AppBskyRichtextFacetTag>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for AppBskyRichtextFacetMainFeaturesItem {
@@ -3025,6 +3183,11 @@ pub enum ComAtprotoAdminDefsModeventviewEvent {
   ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
   #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
   ComAtprotoAdminDefsModeventemail(Box<ComAtprotoAdminDefsModeventemail>),
+  #[serde(rename = "com.atproto.admin.defs#modEventResolveAppeal")]
+  ComAtprotoAdminDefsModeventresolveappeal(Box<ComAtprotoAdminDefsModeventresolveappeal>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsModeventviewEvent {
@@ -3042,6 +3205,9 @@ pub enum ComAtprotoAdminDefsModeventviewSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsModeventviewSubject {
@@ -3069,8 +3235,13 @@ pub enum ComAtprotoAdminDefsModeventviewdetailEvent {
   ComAtprotoAdminDefsModeventescalate(Box<ComAtprotoAdminDefsModeventescalate>),
   #[serde(rename = "com.atproto.admin.defs#modEventMute")]
   ComAtprotoAdminDefsModeventmute(Box<ComAtprotoAdminDefsModeventmute>),
+  #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
+  ComAtprotoAdminDefsModeventemail(Box<ComAtprotoAdminDefsModeventemail>),
   #[serde(rename = "com.atproto.admin.defs#modEventResolveAppeal")]
   ComAtprotoAdminDefsModeventresolveappeal(Box<ComAtprotoAdminDefsModeventresolveappeal>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsModeventviewdetailEvent {
@@ -3092,6 +3263,9 @@ pub enum ComAtprotoAdminDefsModeventviewdetailSubject {
   ComAtprotoAdminDefsRecordview(Box<ComAtprotoAdminDefsRecordview>),
   #[serde(rename = "com.atproto.admin.defs#recordViewNotFound")]
   ComAtprotoAdminDefsRecordviewnotfound(Box<ComAtprotoAdminDefsRecordviewnotfound>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsModeventviewdetailSubject {
@@ -3107,6 +3281,9 @@ pub enum ComAtprotoAdminDefsReportviewSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsReportviewSubject {
@@ -3122,6 +3299,9 @@ pub enum ComAtprotoAdminDefsSubjectstatusviewSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsSubjectstatusviewSubject {
@@ -3141,6 +3321,9 @@ pub enum ComAtprotoAdminDefsReportviewdetailSubject {
   ComAtprotoAdminDefsRecordview(Box<ComAtprotoAdminDefsRecordview>),
   #[serde(rename = "com.atproto.admin.defs#recordViewNotFound")]
   ComAtprotoAdminDefsRecordviewnotfound(Box<ComAtprotoAdminDefsRecordviewnotfound>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsReportviewdetailSubject {
@@ -3156,6 +3339,9 @@ pub enum ComAtprotoAdminDefsBlobviewDetails {
   ComAtprotoAdminDefsImagedetails(Box<ComAtprotoAdminDefsImagedetails>),
   #[serde(rename = "com.atproto.admin.defs#videoDetails")]
   ComAtprotoAdminDefsVideodetails(Box<ComAtprotoAdminDefsVideodetails>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminDefsBlobviewDetails {
@@ -3187,6 +3373,11 @@ pub enum ComAtprotoAdminEmitmoderationeventMainInputEvent {
   ComAtprotoAdminDefsModeventunmute(Box<ComAtprotoAdminDefsModeventunmute>),
   #[serde(rename = "com.atproto.admin.defs#modEventEmail")]
   ComAtprotoAdminDefsModeventemail(Box<ComAtprotoAdminDefsModeventemail>),
+  #[serde(rename = "com.atproto.admin.defs#modEventTag")]
+  ComAtprotoAdminDefsModeventtag(Box<ComAtprotoAdminDefsModeventtag>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminEmitmoderationeventMainInputEvent {
@@ -3204,6 +3395,9 @@ pub enum ComAtprotoAdminEmitmoderationeventMainInputSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminEmitmoderationeventMainInputSubject {
@@ -3221,6 +3415,9 @@ pub enum ComAtprotoAdminGetsubjectstatusMainOutputSubject {
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
   #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
   ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminGetsubjectstatusMainOutputSubject {
@@ -3238,6 +3435,9 @@ pub enum ComAtprotoAdminUpdatesubjectstatusMainInputSubject {
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
   #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
   ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminUpdatesubjectstatusMainInputSubject {
@@ -3255,6 +3455,9 @@ pub enum ComAtprotoAdminUpdatesubjectstatusMainOutputSubject {
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
   #[serde(rename = "com.atproto.admin.defs#repoBlobRef")]
   ComAtprotoAdminDefsRepoblobref(Box<ComAtprotoAdminDefsRepoblobref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoAdminUpdatesubjectstatusMainOutputSubject {
@@ -3270,6 +3473,9 @@ pub enum ComAtprotoLabelSubscribelabelsMainMessage {
   ComAtprotoLabelSubscribelabelsLabels(Box<ComAtprotoLabelSubscribelabelsLabels>),
   #[serde(rename = "com.atproto.label.subscribeLabels#info")]
   ComAtprotoLabelSubscribelabelsInfo(Box<ComAtprotoLabelSubscribelabelsInfo>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoLabelSubscribelabelsMainMessage {
@@ -3287,6 +3493,9 @@ pub enum ComAtprotoModerationCreatereportMainInputSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoModerationCreatereportMainInputSubject {
@@ -3302,6 +3511,9 @@ pub enum ComAtprotoModerationCreatereportMainOutputSubject {
   ComAtprotoAdminDefsReporef(Box<ComAtprotoAdminDefsReporef>),
   #[serde(rename = "com.atproto.repo.strongRef")]
   ComAtprotoRepoStrongref(Box<ComAtprotoRepoStrongref>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoModerationCreatereportMainOutputSubject {
@@ -3319,6 +3531,9 @@ pub enum ComAtprotoRepoApplywritesMainInputWritesItem {
   ComAtprotoRepoApplywritesUpdate(Box<ComAtprotoRepoApplywritesUpdate>),
   #[serde(rename = "com.atproto.repo.applyWrites#delete")]
   ComAtprotoRepoApplywritesDelete(Box<ComAtprotoRepoApplywritesDelete>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoRepoApplywritesMainInputWritesItem {
@@ -3332,6 +3547,8 @@ impl Default for ComAtprotoRepoApplywritesMainInputWritesItem {
 pub enum ComAtprotoSyncSubscribereposMainMessage {
   #[serde(rename = "com.atproto.sync.subscribeRepos#commit")]
   ComAtprotoSyncSubscribereposCommit(Box<ComAtprotoSyncSubscribereposCommit>),
+  #[serde(rename = "com.atproto.sync.subscribeRepos#identity")]
+  ComAtprotoSyncSubscribereposIdentity(Box<ComAtprotoSyncSubscribereposIdentity>),
   #[serde(rename = "com.atproto.sync.subscribeRepos#handle")]
   ComAtprotoSyncSubscribereposHandle(Box<ComAtprotoSyncSubscribereposHandle>),
   #[serde(rename = "com.atproto.sync.subscribeRepos#migrate")]
@@ -3340,6 +3557,9 @@ pub enum ComAtprotoSyncSubscribereposMainMessage {
   ComAtprotoSyncSubscribereposTombstone(Box<ComAtprotoSyncSubscribereposTombstone>),
   #[serde(rename = "com.atproto.sync.subscribeRepos#info")]
   ComAtprotoSyncSubscribereposInfo(Box<ComAtprotoSyncSubscribereposInfo>),
+
+  #[serde(other)]
+  Other,
 }
 
 impl Default for ComAtprotoSyncSubscribereposMainMessage {
@@ -3399,7 +3619,7 @@ impl Client {
     self.proxy.clone()
   }
 
-  /// Get private preferences attached to the account.
+  /// Get private preferences attached to the current account. Expected use is synchronization between multiple devices, and import/export during account migration. Requires auth.
 
   pub fn app_bsky_actor_getpreferences(&self) -> Result<AppBskyActorGetpreferences> {
     let mut req = self.agent.get(&format!(
@@ -3413,7 +3633,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Get detailed profile view of an actor.
+  /// Get detailed profile view of an actor. Does not require auth, but contains relevant metadata with auth.
 
   pub fn app_bsky_actor_getprofile(
     &self,
@@ -3454,7 +3674,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of suggested actors, used for discovery.
+  /// Get a list of suggested actors. Expected use is discovery of accounts to follow during new account onboarding.
 
   pub fn app_bsky_actor_getsuggestions(
     &self,
@@ -3484,7 +3704,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find actors (profiles) matching search criteria.
+  /// Find actors (profiles) matching search criteria. Does not require auth.
 
   pub fn app_bsky_actor_searchactors(
     &self,
@@ -3524,7 +3744,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find actor suggestions for a prefix search term.
+  /// Find actor suggestions for a prefix search term. Expected use is for auto-completion during text field entry. Does not require auth.
 
   pub fn app_bsky_actor_searchactorstypeahead(
     &self,
@@ -3559,7 +3779,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about a feed generator, including policies and offered feed URIs.
+  /// Get information about a feed generator, including policies and offered feed URIs. Does not require auth; implemented by Feed Generator services (not App View).
 
   pub fn app_bsky_feed_describefeedgenerator(&self) -> Result<AppBskyFeedDescribefeedgenerator> {
     let mut req = self.agent.get(&format!(
@@ -3573,7 +3793,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Get a list of feeds created by the actor.
+  /// Get a list of feeds (feed generator records) created by the actor (in the actor&#39;s repo).
 
   pub fn app_bsky_feed_getactorfeeds(
     &self,
@@ -3606,7 +3826,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of posts liked by an actor.
+  /// Get a list of posts liked by an actor. Does not require auth.
 
   pub fn app_bsky_feed_getactorlikes(
     &self,
@@ -3639,7 +3859,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a view of an actor&#39;s feed.
+  /// Get a view of an actor&#39;s &#39;author feed&#39; (post and reposts by the author). Does not require auth.
 
   pub fn app_bsky_feed_getauthorfeed(
     &self,
@@ -3677,7 +3897,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a hydrated feed from an actor&#39;s selected feed generator.
+  /// Get a hydrated feed from an actor&#39;s selected feed generator. Implemented by App View.
 
   pub fn app_bsky_feed_getfeed(
     &self,
@@ -3709,7 +3929,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about a feed generator.
+  /// Get information about a feed generator. Implemented by AppView.
 
   pub fn app_bsky_feed_getfeedgenerator(&self, feed: &str) -> Result<AppBskyFeedGetfeedgenerator> {
     let mut req = self.agent.get(&format!(
@@ -3750,7 +3970,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a skeleton of a feed provided by a feed generator.
+  /// Get a skeleton of a feed provided by a feed generator. Auth is optional, depending on provider requirements, and provides the DID of the requester. Implemented by Feed Generator Service.
 
   pub fn app_bsky_feed_getfeedskeleton(
     &self,
@@ -3783,7 +4003,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get the list of likes.
+  /// Get like records which reference a subject (by AT-URI and CID).
 
   pub fn app_bsky_feed_getlikes(
     &self,
@@ -3823,7 +4043,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a view of a recent posts from actors in a list.
+  /// Get a feed of recent posts from a list (posts and reposts from any actors on the list). Does not require auth.
 
   pub fn app_bsky_feed_getlistfeed(
     &self,
@@ -3856,7 +4076,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get posts in a thread.
+  /// Get posts in a thread. Does not require auth, but additional metadata and filtering will be applied for authed requests.
 
   pub fn app_bsky_feed_getpostthread(
     &self,
@@ -3891,7 +4111,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a view of an actor&#39;s feed.
+  /// Gets post views for a specified list of posts (by AT-URI). This is sometimes referred to as &#39;hydrating&#39; a &#39;feed skeleton&#39;.
 
   pub fn app_bsky_feed_getposts(&self, uris: &[&str]) -> Result<AppBskyFeedGetposts> {
     let mut req = self.agent.get(&format!(
@@ -3911,7 +4131,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of reposts.
+  /// Get a list of reposts for a given post.
 
   pub fn app_bsky_feed_getrepostedby(
     &self,
@@ -3951,7 +4171,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of suggested feeds for the viewer.
+  /// Get a list of suggested feeds (feed generators) for the requesting account.
 
   pub fn app_bsky_feed_getsuggestedfeeds(
     &self,
@@ -3981,7 +4201,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a view of the actor&#39;s home timeline.
+  /// Get a view of the requesting account&#39;s home timeline. This is expected to be some form of reverse-chronological feed.
 
   pub fn app_bsky_feed_gettimeline(
     &self,
@@ -4016,7 +4236,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find posts matching search criteria.
+  /// Find posts matching search criteria, returning views of those posts.
 
   pub fn app_bsky_feed_searchposts(
     &self,
@@ -4049,7 +4269,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of who the actor is blocking.
+  /// Enumerates which accounts the requesting account is currently blocking. Requires auth.
 
   pub fn app_bsky_graph_getblocks(
     &self,
@@ -4079,7 +4299,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of an actor&#39;s followers.
+  /// Enumerates accounts which follow a specified account (actor).
 
   pub fn app_bsky_graph_getfollowers(
     &self,
@@ -4112,7 +4332,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of who the actor follows.
+  /// Enumerates accounts which a specified account (actor) follows.
 
   pub fn app_bsky_graph_getfollows(
     &self,
@@ -4145,7 +4365,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of actors.
+  /// Gets a &#39;view&#39; (with additional context) of a specified list.
 
   pub fn app_bsky_graph_getlist(
     &self,
@@ -4178,7 +4398,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get lists that the actor is blocking.
+  /// Get mod lists that the requesting account (actor) is blocking. Requires auth.
 
   pub fn app_bsky_graph_getlistblocks(
     &self,
@@ -4208,7 +4428,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get lists that the actor is muting.
+  /// Enumerates mod lists that the requesting account (actor) currently has muted. Requires auth.
 
   pub fn app_bsky_graph_getlistmutes(
     &self,
@@ -4238,7 +4458,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of lists that belong to an actor.
+  /// Enumerates the lists created by a specified account (actor).
 
   pub fn app_bsky_graph_getlists(
     &self,
@@ -4271,7 +4491,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of who the actor mutes.
+  /// Enumerates accounts that the requesting account (actor) currently has muted. Requires auth.
 
   pub fn app_bsky_graph_getmutes(
     &self,
@@ -4301,7 +4521,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Enumerates public relationships between one account, and a list of other accounts
+  /// Enumerates public relationships between one account, and a list of other accounts. Does not require auth.
 
   pub fn app_bsky_graph_getrelationships(
     &self,
@@ -4329,7 +4549,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get suggested follows related to a given actor.
+  /// Enumerates follows similar to a given account (actor). Expected use is to recommend additional accounts immediately after following one account.
 
   pub fn app_bsky_graph_getsuggestedfollowsbyactor(
     &self,
@@ -4350,7 +4570,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get the count of unread notifications.
+  /// Count the number of unread notifications for the requesting account. Requires auth.
 
   pub fn app_bsky_notification_getunreadcount(
     &self,
@@ -4375,7 +4595,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a list of notifications.
+  /// Enumerate notifications for the requesting account. Requires auth.
 
   pub fn app_bsky_notification_listnotifications(
     &self,
@@ -4742,9 +4962,18 @@ impl Client {
     types: Option<&[&str]>,
     created_by: Option<&str>,
     sort_direction: Option<&str>,
+    created_after: Option<&DateTime<Utc>>,
+    created_before: Option<&DateTime<Utc>>,
     subject: Option<&str>,
     include_all_user_records: Option<bool>,
     limit: Option<i64>,
+    has_comment: Option<bool>,
+    comment: Option<&str>,
+    added_labels: Option<&[&str]>,
+    removed_labels: Option<&[&str]>,
+    added_tags: Option<&[&str]>,
+    removed_tags: Option<&[&str]>,
+    report_types: Option<&[&str]>,
     cursor: Option<&str>,
   ) -> Result<ComAtprotoAdminQuerymoderationevents> {
     let mut req = self.agent.get(&format!(
@@ -4769,6 +4998,18 @@ impl Client {
 
     if sort_direction.is_some() {
       _q.push(("sort_direction", sort_direction.unwrap_or_default()));
+    }
+
+    let created_after_value = serde_json::to_string(&created_after)?;
+
+    if created_after.is_some() {
+      _q.push(("created_after", created_after_value.as_str()));
+    }
+
+    let created_before_value = serde_json::to_string(&created_before)?;
+
+    if created_before.is_some() {
+      _q.push(("created_before", created_before_value.as_str()));
     };
 
     if subject.is_some() {
@@ -4788,6 +5029,46 @@ impl Client {
 
     if limit.is_some() {
       _q.push(("limit", limit_value.as_str()));
+    }
+
+    let has_comment_value = serde_json::to_string(&has_comment)?;
+
+    if has_comment.is_some() {
+      _q.push(("has_comment", has_comment_value.as_str()));
+    };
+
+    if comment.is_some() {
+      _q.push(("comment", comment.unwrap_or_default()));
+    }
+
+    let added_labels_value = serde_json::to_string(&added_labels)?;
+
+    if added_labels.is_some() {
+      _q.push(("added_labels", added_labels_value.as_str()));
+    }
+
+    let removed_labels_value = serde_json::to_string(&removed_labels)?;
+
+    if removed_labels.is_some() {
+      _q.push(("removed_labels", removed_labels_value.as_str()));
+    }
+
+    let added_tags_value = serde_json::to_string(&added_tags)?;
+
+    if added_tags.is_some() {
+      _q.push(("added_tags", added_tags_value.as_str()));
+    }
+
+    let removed_tags_value = serde_json::to_string(&removed_tags)?;
+
+    if removed_tags.is_some() {
+      _q.push(("removed_tags", removed_tags_value.as_str()));
+    }
+
+    let report_types_value = serde_json::to_string(&report_types)?;
+
+    if report_types.is_some() {
+      _q.push(("report_types", report_types_value.as_str()));
     };
 
     if cursor.is_some() {
@@ -4816,6 +5097,8 @@ impl Client {
     takendown: Option<bool>,
     appealed: Option<bool>,
     limit: Option<i64>,
+    tags: Option<&[&str]>,
+    exclude_tags: Option<&[&str]>,
     cursor: Option<&str>,
   ) -> Result<ComAtprotoAdminQuerymoderationstatuses> {
     let mut req = self.agent.get(&format!(
@@ -4904,6 +5187,18 @@ impl Client {
 
     if limit.is_some() {
       _q.push(("limit", limit_value.as_str()));
+    }
+
+    let tags_value = serde_json::to_string(&tags)?;
+
+    if tags.is_some() {
+      _q.push(("tags", tags_value.as_str()));
+    }
+
+    let exclude_tags_value = serde_json::to_string(&exclude_tags)?;
+
+    if exclude_tags.is_some() {
+      _q.push(("exclude_tags", exclude_tags_value.as_str()));
     };
 
     if cursor.is_some() {
@@ -4953,7 +5248,23 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Provides the DID of a repo.
+  /// Describe the credentials that should be included in the DID doc of an account that is migrating to this service.
+
+  pub fn com_atproto_identity_getrecommendeddidcredentials(
+    &self,
+  ) -> Result<ComAtprotoIdentityGetrecommendeddidcredentials> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.identity.getRecommendedDidCredentials",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
+  }
+
+  /// Resolves a handle (domain name) to a DID.
 
   pub fn com_atproto_identity_resolvehandle(
     &self,
@@ -4974,7 +5285,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Find labels relevant to the provided URI patterns.
+  /// Find labels relevant to the provided AT-URI patterns. Public endpoint for moderation services, though may return different or additional results with auth.
 
   pub fn com_atproto_label_querylabels(
     &self,
@@ -5019,7 +5330,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about the repo, including the list of collections.
+  /// Get information about an account and repository, including the list of collections. Does not require auth.
 
   pub fn com_atproto_repo_describerepo(&self, repo: &str) -> Result<ComAtprotoRepoDescriberepo> {
     let mut req = self.agent.get(&format!(
@@ -5037,7 +5348,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a record.
+  /// Get a single record from a repository. Does not require auth.
 
   pub fn com_atproto_repo_getrecord(
     &self,
@@ -5071,7 +5382,37 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// List a range of records in a collection.
+  /// Returns a list of missing blobs for the requesting account. Intended to be used in the account migration flow.
+
+  pub fn com_atproto_repo_listmissingblobs(
+    &self,
+    limit: Option<i64>,
+    cursor: Option<&str>,
+  ) -> Result<ComAtprotoRepoListmissingblobs> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.repo.listMissingBlobs",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    let limit_value = serde_json::to_string(&limit)?;
+
+    if limit.is_some() {
+      _q.push(("limit", limit_value.as_str()));
+    };
+
+    if cursor.is_some() {
+      _q.push(("cursor", cursor.unwrap_or_default()));
+    }
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// List a range of records in a repository, matching a specific collection. Does not require auth.
 
   pub fn com_atproto_repo_listrecords(
     &self,
@@ -5124,7 +5465,23 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get a document describing the service&#39;s accounts configuration.
+  /// Returns the status of an account, especially as pertaining to import or recovery. Can be called many times over the course of an account migration. Requires auth and can only be called pertaining to oneself.
+
+  pub fn com_atproto_server_checkaccountstatus(
+    &self,
+  ) -> Result<ComAtprotoServerCheckaccountstatus> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.server.checkAccountStatus",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?.into_json()?)
+  }
+
+  /// Describes the server&#39;s account creation requirements and capabilities. Implemented by PDS.
 
   pub fn com_atproto_server_describeserver(&self) -> Result<ComAtprotoServerDescribeserver> {
     let mut req = self.agent.get(&format!(
@@ -5138,7 +5495,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Get all invite codes for a given account.
+  /// Get all invite codes for the current account. Requires auth.
 
   pub fn com_atproto_server_getaccountinvitecodes(
     &self,
@@ -5170,7 +5527,28 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get information about the current session.
+  /// Get a signed token on behalf of the requesting DID for the requested service.
+
+  pub fn com_atproto_server_getserviceauth(
+    &self,
+    aud: &str,
+  ) -> Result<ComAtprotoServerGetserviceauth> {
+    let mut req = self.agent.get(&format!(
+      "https://{}/xrpc/com.atproto.server.getServiceAuth",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut _q = Vec::new();
+
+    _q.push(("aud", aud));
+
+    Ok(req.query_pairs(_q).call()?.into_json()?)
+  }
+
+  /// Get information about the current auth session. Requires auth.
 
   pub fn com_atproto_server_getsession(&self) -> Result<ComAtprotoServerGetsession> {
     let mut req = self.agent.get(&format!(
@@ -5198,7 +5576,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Get a blob associated with a given repo.
+  /// Get a blob associated with a given account. Returns the full blob as originally uploaded. Does not require auth; implemented by PDS.
 
   pub fn com_atproto_sync_getblob(&self, did: &str, cid: &CidString) -> Result<Vec<u8>> {
     let mut req = self.agent.get(&format!(
@@ -5226,7 +5604,7 @@ impl Client {
     Ok(ret)
   }
 
-  /// Get blocks from a given repo.
+  /// Get data blocks from a given repo, by CID. For example, intermediate MST nodes, or records. Does not require auth; implemented by PDS.
 
   pub fn com_atproto_sync_getblocks(&self, did: &str, cids: &[&CidString]) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
@@ -5298,7 +5676,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get the current commit CID &amp; revision of the repo.
+  /// Get the current commit CID &amp; revision of the specified repo. Does not require auth.
 
   pub fn com_atproto_sync_getlatestcommit(
     &self,
@@ -5319,7 +5697,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// Get blocks needed for existence or non-existence of record.
+  /// Get data blocks needed to prove the existence or non-existence of record in the current version of repo. Does not require auth.
 
   pub fn com_atproto_sync_getrecord(
     &self,
@@ -5360,7 +5738,7 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// Gets the DID&#39;s repo, optionally catching up from a specific revision.
+  /// Download a repository export as CAR file. Optionally only a &#39;diff&#39; since a previous revision. Does not require auth; implemented by PDS.
 
   pub fn com_atproto_sync_getrepo(&self, did: &str, since: Option<&str>) -> Result<Blocks> {
     let mut req = self.agent.get(&format!(
@@ -5389,7 +5767,7 @@ impl Client {
     Ok(Blocks::from(ret.as_slice()))
   }
 
-  /// List blob CIDs since some revision.
+  /// List blob CIDso for an account, since some repo revision. Does not require auth; implemented by PDS.
 
   pub fn com_atproto_sync_listblobs(
     &self,
@@ -5427,7 +5805,7 @@ impl Client {
     Ok(req.query_pairs(_q).call()?.into_json()?)
   }
 
-  /// List DIDs and root CIDs of hosted repos.
+  /// Enumerates all the DID, rev, and commit CID for all repos hosted by this service. Does not require auth; implemented by PDS and Relay.
 
   pub fn com_atproto_sync_listrepos(
     &self,
@@ -5471,7 +5849,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Fetch all labels from a labeler created after a certain date.
+  /// Fetch all labels from a labeler created after a certain date. DEPRECATED: use queryLabels or subscribeLabels instead
 
   pub fn com_atproto_temp_fetchlabels(
     &self,
@@ -5524,7 +5902,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Mute an actor by DID or handle.
+  /// Creates a mute relationship for the specified account. Mutes are private in Bluesky. Requires auth.
 
   pub fn app_bsky_graph_muteactor(&self, actor: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5542,7 +5920,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Mute a list of actors.
+  /// Creates a mute relationship for the specified list of accounts. Mutes are private in Bluesky. Requires auth.
 
   pub fn app_bsky_graph_muteactorlist(&self, list: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5560,7 +5938,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Unmute an actor by DID or handle.
+  /// Unmutes the specified account. Requires auth.
 
   pub fn app_bsky_graph_unmuteactor(&self, actor: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5578,7 +5956,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Unmute a list of actors.
+  /// Unmutes the specified list of accounts. Requires auth.
 
   pub fn app_bsky_graph_unmuteactorlist(&self, list: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -5596,7 +5974,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Register for push notifications with a service.
+  /// Register to receive push notifications, via a specified service, for the requesting account. Requires auth.
 
   pub fn app_bsky_notification_registerpush(
     &self,
@@ -5626,7 +6004,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Notify server that the user has seen notifications.
+  /// Notify server that the requesting account has seen notifications. Requires auth.
 
   pub fn app_bsky_notification_updateseen(
     &self,
@@ -5984,7 +6362,85 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Updates the handle of the account.
+  /// Request an email with a code to in order to request a signed PLC operation. Requires Auth.
+
+  pub fn com_atproto_identity_requestplcoperationsignature(&self) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.identity.requestPlcOperationSignature",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?)
+  }
+
+  /// Signs a PLC operation to update some value(s) in the requesting DID&#39;s document.
+
+  pub fn com_atproto_identity_signplcoperation(
+    &self,
+    token: Option<&str>,
+    rotation_keys: Option<&[&str]>,
+    also_known_as: Option<&[&str]>,
+    verification_methods: Option<&Record>,
+    services: Option<&Record>,
+  ) -> Result<ComAtprotoIdentitySignplcoperation> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.identity.signPlcOperation",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    if let Some(v) = &token {
+      input.insert(String::from("token"), json!(v));
+    }
+
+    if let Some(v) = &rotation_keys {
+      input.insert(String::from("rotation_keys"), json!(v));
+    }
+
+    if let Some(v) = &also_known_as {
+      input.insert(String::from("also_known_as"), json!(v));
+    }
+
+    if let Some(v) = &verification_methods {
+      input.insert(String::from("verification_methods"), json!(v));
+    }
+
+    if let Some(v) = &services {
+      input.insert(String::from("services"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?.into_json()?)
+  }
+
+  /// Validates a PLC operation to ensure that it doesn&#39;t violate a service&#39;s constraints or get the identity into a bad state, then submits it to the PLC registry
+
+  pub fn com_atproto_identity_submitplcoperation(
+    &self,
+    operation: &Record,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.identity.submitPlcOperation",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("operation"), json!(operation));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Updates the current account&#39;s handle. Verifies handle validity, and updates did:plc document if necessary. Implemented by PDS, and requires auth.
 
   pub fn com_atproto_identity_updatehandle(&self, handle: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -6002,7 +6458,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Report a repo or a record.
+  /// Submit a moderation report regarding an atproto account or record. Implemented by moderation services (with PDS proxying), and requires auth.
 
   pub fn com_atproto_moderation_createreport(
     &self,
@@ -6031,7 +6487,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Apply a batch transaction of creates, updates, and deletes.
+  /// Apply a batch transaction of repository creates, updates, and deletes. Requires auth, implemented by PDS.
 
   pub fn com_atproto_repo_applywrites(
     &self,
@@ -6065,7 +6521,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Create a new record.
+  /// Create a single new repository record. Requires auth, implemented by PDS.
 
   pub fn com_atproto_repo_createrecord(
     &self,
@@ -6107,7 +6563,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Delete a record, or ensure it doesn&#39;t exist.
+  /// Delete a repository record, or ensure it doesn&#39;t exist. Requires auth, implemented by PDS.
 
   pub fn com_atproto_repo_deleterecord(
     &self,
@@ -6144,7 +6600,21 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Write a record, creating or updating it as needed.
+  /// Import a repo in the form of a CAR file. Requires Content-Length HTTP header to be set.
+
+  pub fn com_atproto_repo_importrepo(&self) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.repo.importRepo",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?)
+  }
+
+  /// Write a repository record, creating or updating it as needed. Requires auth, implemented by PDS.
 
   pub fn com_atproto_repo_putrecord(
     &self,
@@ -6189,7 +6659,7 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Upload a new blob to be added to repo in a later request.
+  /// Upload a new blob, to be referenced from a repository record. The blob will be deleted if it is not referenced within a time window (eg, minutes). Blob restrictions (mimetype, size, etc) are enforced when the reference is created. Requires auth, implemented by PDS.
 
   pub fn com_atproto_repo_uploadblob(
     &self,
@@ -6207,6 +6677,20 @@ impl Client {
     req = req.set("Content-Type", content_type);
 
     Ok(req.send_bytes(bytes)?.into_json()?)
+  }
+
+  /// Activates a currently deactivated account. Used to finalize account migration after the account&#39;s repo is imported and identity is setup.
+
+  pub fn com_atproto_server_activateaccount(&self) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.activateAccount",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    Ok(req.call()?)
   }
 
   /// Confirm an email using a token from com.atproto.server.requestEmailConfirmation.
@@ -6233,7 +6717,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Create an account.
+  /// Create an account. Implemented by PDS.
 
   pub fn com_atproto_server_createaccount(
     &self,
@@ -6394,7 +6878,30 @@ impl Client {
     Ok(req.send_json(json!(input))?.into_json()?)
   }
 
-  /// Delete an actor&#39;s account with a token and password.
+  /// Deactivates a currently active account. Stops serving of repo, and future writes to repo until reactivated. Used to finalize account migration with the old host after the account has been activated on the new host.
+
+  pub fn com_atproto_server_deactivateaccount(
+    &self,
+    delete_after: Option<&DateTime<Utc>>,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.server.deactivateAccount",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    if let Some(v) = &delete_after {
+      input.insert(String::from("delete_after"), json!(v));
+    }
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Delete an actor&#39;s account with a token and password. Can only be called after requesting a deletion token. Requires auth.
 
   pub fn com_atproto_server_deleteaccount(
     &self,
@@ -6421,7 +6928,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Delete the current session.
+  /// Delete the current session. Requires auth.
 
   pub fn com_atproto_server_deletesession(&self) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -6435,7 +6942,7 @@ impl Client {
     Ok(req.call()?)
   }
 
-  /// Refresh an authentication session.
+  /// Refresh an authentication session. Requires auth using the &#39;refreshJwt&#39; (not the &#39;accessJwt&#39;).
 
   pub fn com_atproto_server_refreshsession(&self) -> Result<ComAtprotoServerRefreshsession> {
     let mut req = self.agent.post(&format!(
@@ -6511,7 +7018,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Reserve a repo signing key for account creation.
+  /// Reserve a repo signing key, for use with account creation. Necessary so that a DID PLC update operation can be constructed during an account migraiton. Public and does not require auth; implemented by PDS. NOTE: this endpoint may change when full account migration is implemented.
 
   pub fn com_atproto_server_reservesigningkey(
     &self,
@@ -6602,7 +7109,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Notify a crawling service of a recent update; often when a long break between updates causes the connection with the crawling service to break.
+  /// Notify a crawling service of a recent update, and that crawling should resume. Intended use is after a gap between repo stream events caused the crawling service to disconnect. Does not require auth; implemented by Relay.
 
   pub fn com_atproto_sync_notifyofupdate(&self, hostname: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -6620,7 +7127,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Request a service to persistently crawl hosted repos.
+  /// Request a service to persistently crawl hosted repos. Expected use is new PDS instances declaring their existence to Relays. Does not require auth.
 
   pub fn com_atproto_sync_requestcrawl(&self, hostname: &str) -> Result<ureq::Response> {
     let mut req = self.agent.post(&format!(
@@ -6636,48 +7143,6 @@ impl Client {
     input.insert(String::from("hostname"), json!(hostname));
 
     Ok(req.send_json(json!(input))?)
-  }
-
-  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
-
-  pub fn com_atproto_temp_importrepo(&self, did: &str, bytes: &[u8]) -> Result<Vec<u8>> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.temp.importRepo",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut _q = Vec::new();
-
-    _q.push(("did", did));
-
-    req = req.query_pairs(_q);
-
-    req = req.set("Content-Type", "application/vnd.ipld.car");
-
-    Ok(req.send_bytes(bytes)?.into_json()?)
-  }
-
-  /// Gets the did&#39;s repo, optionally catching up from a specific revision.
-
-  pub fn com_atproto_temp_pushblob(
-    &self,
-    bytes: &[u8],
-    content_type: &str,
-  ) -> Result<ureq::Response> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.temp.pushBlob",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    req = req.set("Content-Type", content_type);
-
-    Ok(req.send_bytes(bytes)?)
   }
 
   /// Request a verification code to be sent to the supplied phone number
@@ -6701,34 +7166,7 @@ impl Client {
     Ok(req.send_json(json!(input))?)
   }
 
-  /// Transfer an account.
-
-  pub fn com_atproto_temp_transferaccount(
-    &self,
-    handle: &str,
-    did: &str,
-    plc_op: &Record,
-  ) -> Result<ComAtprotoTempTransferaccount> {
-    let mut req = self.agent.post(&format!(
-      "https://{}/xrpc/com.atproto.temp.transferAccount",
-      self.host
-    ));
-    if let Some(jwt) = &self.jwt {
-      req = req.set("Authorization", &format!("Bearer {}", jwt));
-    }
-
-    let mut input = serde_json::Map::new();
-
-    input.insert(String::from("handle"), json!(handle));
-
-    input.insert(String::from("did"), json!(did));
-
-    input.insert(String::from("plc_op"), json!(plc_op));
-
-    Ok(req.send_json(json!(input))?.into_json()?)
-  }
-
-  /// Subscribe to label updates.
+  /// Subscribe to stream of labels (and negations). Public endpoint implemented by mod services. Uses same sequencing scheme as repo event stream.
   pub fn com_atproto_label_subscribelabels(
     &self,
     cursor: Option<i64>,
@@ -6751,7 +7189,7 @@ impl Client {
     Ok(tungstenite::connect(&url)?.0)
   }
 
-  /// Subscribe to repo updates.
+  /// Repository event stream, aka Firehose endpoint. Outputs repo commits with diff data, and identity update events, for all repositories on the current server. See the atproto specifications for details around stream sequencing, repo versioning, CAR diff format, and more. Public and does not require auth; implemented by PDS and Relay.
   pub fn com_atproto_sync_subscriberepos(
     &self,
     cursor: Option<i64>,

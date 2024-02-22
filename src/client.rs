@@ -192,6 +192,7 @@ impl Client {
           AtprotoService::AtprotoPds(pds) => {
             (pds.pds_type == "AtprotoPersonalDataServer").then(|| pds)
           }
+          AtprotoService::Other => None,
         }) {
           if let Ok(url) = Url::parse(&pds.service_endpoint) {
             if let Some(host) = url.host() {

@@ -390,6 +390,9 @@ impl Event {
   pub fn get_seq(&self) -> Option<i64> {
     match &self.payload {
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposCommit(c) => Some(c.seq),
+      ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposIdentity(id) => {
+        Some(id.seq)
+      }
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposHandle(h) => Some(h.seq),
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposMigrate(m) => {
         Some(m.seq)
@@ -398,6 +401,7 @@ impl Event {
         Some(t.seq)
       }
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposInfo(_) => None,
+      ComAtprotoSyncSubscribereposMainMessage::Other => None,
     }
   }
 
@@ -406,6 +410,9 @@ impl Event {
     match &self.payload {
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposCommit(c) => {
         Some(c.time)
+      }
+      ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposIdentity(id) => {
+        Some(id.time)
       }
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposHandle(h) => {
         Some(h.time)
@@ -417,6 +424,7 @@ impl Event {
         Some(t.time)
       }
       ComAtprotoSyncSubscribereposMainMessage::ComAtprotoSyncSubscribereposInfo(_) => None,
+      ComAtprotoSyncSubscribereposMainMessage::Other => None,
     }
   }
 }
