@@ -17,6 +17,9 @@ use ureq::{Agent, AgentBuilder, Proxy};
 use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsMutedwordtarget(String);
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyGraphDefsListpurpose(String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -181,6 +184,35 @@ pub struct AppBskyActorDefsThreadviewpref {
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct AppBskyActorDefsInterestspref {
   pub tags: Vec<String>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+/// A word that the account owner has muted.
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsMutedword {
+  pub value: String,
+  pub targets: Vec<AppBskyActorDefsMutedwordtarget>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsMutedwordspref {
+  pub items: Vec<AppBskyActorDefsMutedword>,
+
+  #[serde(flatten)]
+  pub extra: HashMap<String, Value>,
+}
+
+#[skip_serializing_none]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct AppBskyActorDefsHiddenpostspref {
+  pub items: Vec<String>,
 
   #[serde(flatten)]
   pub extra: HashMap<String, Value>,
@@ -2769,6 +2801,10 @@ pub enum AppBskyActorDefsPreferencesItem {
   AppBskyActorDefsThreadviewpref(Box<AppBskyActorDefsThreadviewpref>),
   #[serde(rename = "app.bsky.actor.defs#interestsPref")]
   AppBskyActorDefsInterestspref(Box<AppBskyActorDefsInterestspref>),
+  #[serde(rename = "app.bsky.actor.defs#mutedWordsPref")]
+  AppBskyActorDefsMutedwordspref(Box<AppBskyActorDefsMutedwordspref>),
+  #[serde(rename = "app.bsky.actor.defs#hiddenPostsPref")]
+  AppBskyActorDefsHiddenpostspref(Box<AppBskyActorDefsHiddenpostspref>),
 
   #[serde(other)]
   Other,
@@ -5849,7 +5885,7 @@ impl Client {
     Ok(req.call()?.into_json()?)
   }
 
-  /// Fetch all labels from a labeler created after a certain date. DEPRECATED: use queryLabels or subscribeLabels instead
+  /// DEPRECATED: use queryLabels or subscribeLabels instead -- Fetch all labels from a labeler created after a certain date.
 
   pub fn com_atproto_temp_fetchlabels(
     &self,
@@ -6286,6 +6322,30 @@ impl Client {
     input.insert(String::from("did"), json!(did));
 
     input.insert(String::from("handle"), json!(handle));
+
+    Ok(req.send_json(json!(input))?)
+  }
+
+  /// Update the password for a user account as an administrator.
+
+  pub fn com_atproto_admin_updateaccountpassword(
+    &self,
+    did: &str,
+    password: &str,
+  ) -> Result<ureq::Response> {
+    let mut req = self.agent.post(&format!(
+      "https://{}/xrpc/com.atproto.admin.updateAccountPassword",
+      self.host
+    ));
+    if let Some(jwt) = &self.jwt {
+      req = req.set("Authorization", &format!("Bearer {}", jwt));
+    }
+
+    let mut input = serde_json::Map::new();
+
+    input.insert(String::from("did"), json!(did));
+
+    input.insert(String::from("password"), json!(password));
 
     Ok(req.send_json(json!(input))?)
   }
